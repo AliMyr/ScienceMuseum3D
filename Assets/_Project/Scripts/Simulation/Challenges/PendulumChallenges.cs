@@ -10,6 +10,7 @@ namespace ScienceMuseum.Simulation.Challenges
     /// </summary>
     public class TargetPeriodChallenge : IChallenge
     {
+        public string Id { get; }
         public string Title { get; }
         public string Description { get; }
         public string Hint { get; }
@@ -21,6 +22,7 @@ namespace ScienceMuseum.Simulation.Challenges
         private float _currentPeriod;
 
         public TargetPeriodChallenge(
+            string id,
             PendulumExhibit exhibit,
             float targetPeriod,
             float tolerance = 0.05f,
@@ -28,6 +30,7 @@ namespace ScienceMuseum.Simulation.Challenges
             string description = null,
             string hint = null)
         {
+            Id = id;
             _exhibit = exhibit;
             _targetPeriod = targetPeriod;
             _tolerance = tolerance;
@@ -51,7 +54,6 @@ namespace ScienceMuseum.Simulation.Challenges
             }
             else if (diff <= _tolerance * 3f)
             {
-                // "Близко" - показываем что направление верное
                 Status = ChallengeStatus.InProgress;
             }
             else
@@ -74,6 +76,7 @@ namespace ScienceMuseum.Simulation.Challenges
     /// </summary>
     public class MatchGravityChallenge : IChallenge
     {
+        public string Id { get; }
         public string Title { get; }
         public string Description { get; }
         public string Hint { get; }
@@ -84,9 +87,10 @@ namespace ScienceMuseum.Simulation.Challenges
         private readonly float _tolerance;
         private readonly string _planetName;
 
-        public MatchGravityChallenge(PendulumExhibit exhibit, float targetGravity,
+        public MatchGravityChallenge(string id, PendulumExhibit exhibit, float targetGravity,
                                        string planetName, float tolerance = 0.15f)
         {
+            Id = id;
             _exhibit = exhibit;
             _targetGravity = targetGravity;
             _tolerance = tolerance;

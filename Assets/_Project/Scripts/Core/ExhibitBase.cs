@@ -4,6 +4,10 @@ namespace ScienceMuseum.Core
 {
     public abstract class ExhibitBase : MonoBehaviour, IExhibit
     {
+        [Header("Идентификация")]
+        [Tooltip("Уникальный ID экспоната. Используется для сохранения прогресса.")]
+        [SerializeField] protected string exhibitId = "unnamed_exhibit";
+
         [Header("Информация об экспонате")]
         [Tooltip("Название - показывается в подсказке и на стенде")]
         [SerializeField] protected string title = "Экспонат";
@@ -27,6 +31,7 @@ namespace ScienceMuseum.Core
         private bool _isHighlighted;
 
         public string Title => title;
+        public string ExhibitId => exhibitId;
 
         protected virtual void Awake()
         {

@@ -2,6 +2,7 @@ using UnityEngine;
 using ScienceMuseum.Core;
 using ScienceMuseum.Simulation.Models;
 using ScienceMuseum.Simulation.Challenges;
+using ScienceMuseum.Managers;
 
 namespace ScienceMuseum.Exhibits
 {
@@ -102,12 +103,14 @@ namespace ScienceMuseum.Exhibits
             // Создаём задания для этого экспоната
             _challenges = new IChallenge[]
             {
-        new TargetPeriodChallenge(this, targetPeriod: 2.0f, tolerance: 0.05f),
-        new TargetPeriodChallenge(this, targetPeriod: 1.0f, tolerance: 0.05f,
-            title: "Быстрый маятник",
-            description: "Сделай так, чтобы маятник совершал одно колебание за 1 секунду."),
-        new MatchGravityChallenge(this, 1.62f, "Луне"),
-        new MatchGravityChallenge(this, 3.71f, "Марсе"),
+                new TargetPeriodChallenge("pendulum.period_2sec", this,
+                    targetPeriod: 2.0f, tolerance: 0.05f),
+                new TargetPeriodChallenge("pendulum.period_1sec", this,
+                    targetPeriod: 1.0f, tolerance: 0.05f,
+                    title: "Быстрый маятник",
+                    description: "Сделай так, чтобы маятник совершал одно колебание за 1 секунду."),
+                new MatchGravityChallenge("pendulum.gravity_moon", this, 1.62f, "Луне"),
+                new MatchGravityChallenge("pendulum.gravity_mars", this, 3.71f, "Марсе"),
             };
 
             ResetSimulation();
@@ -200,18 +203,28 @@ namespace ScienceMuseum.Exhibits
         private void EvaluateChallenges()
         {
             if (_challenges == null) return;
+
             foreach (var challenge in _challenges)
             {
+                var previousStatus = challenge.Status;
                 challenge.Evaluate();
+
+                // Если только что выполнили - регистрируем в менеджере прогресса
+                if (previousStatus != ChallengeStatus.Completed &&
+                    challenge.Status == ChallengeStatus.Completed)
+                {
+                    ProgressManager.Instance?.CompleteChallenge(challenge.Id);
+                }
             }
         }
 
         // Реализация абстрактного метода ExhibitBase
         public override void OnActivate()
         {
-            // Находим панель в сцене и просим её открыть с этим экспонатом.
-            // Для простоты используем FindObjectOfType.
-            // В большом проекте - синглтон-менеджер или DI.
+            // Отмечаем что игрок "изучил" этот экспонат
+            ProgressManager.Instance?.MarkExhibitStudied(ExhibitId);
+
+            // Открываем панель изучения
             var studyPanel = FindObjectOfType<ScienceMuseum.UI.ExhibitStudyPanel>(true);
             if (studyPanel != null)
             {

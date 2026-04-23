@@ -9,16 +9,14 @@ namespace ScienceMuseum.Core
 
     public interface IChallenge
     {
+        string Id { get; }
+
         string Title { get; }
-
         string Description { get; }
-
         string Hint { get; }
-
         ChallengeStatus Status { get; }
 
         void Evaluate();
-
         string GetProgressText();
     }
 }
