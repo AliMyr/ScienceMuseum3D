@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using ScienceMuseum.Exhibits;
+using ScienceMuseum.Core;
+using System.Collections.Generic;
 
 namespace ScienceMuseum.UI
 {
@@ -49,6 +51,16 @@ namespace ScienceMuseum.UI
         private PendulumExhibit _currentExhibit;
         private bool _isOpen;
 
+        [Header("Задания")]
+        [Tooltip("Контейнер, куда инстанциируются карточки заданий")]
+        [SerializeField] private RectTransform challengesListRoot;
+
+        [Tooltip("Префаб одной карточки задания")]
+        [SerializeField] private ChallengeCard challengeCardPrefab;
+
+        // Существующие карточки (чтобы при смене экспоната пересоздавать)
+        private readonly List<ChallengeCard> _cards = new List<ChallengeCard>();
+
         private void Awake()
         {
             if (panelRoot != null) panelRoot.SetActive(false);
@@ -76,6 +88,15 @@ namespace ScienceMuseum.UI
             {
                 Close();
             }
+
+            // Обновляем карточки
+            if (_isOpen)
+            {
+                foreach (var card in _cards)
+                {
+                    if (card != null) card.Refresh();
+                }
+            }
         }
 
         /// <summary>
@@ -83,6 +104,8 @@ namespace ScienceMuseum.UI
         /// </summary>
         public void Open(PendulumExhibit exhibit)
         {
+            RebuildChallenges(exhibit.Challenges);
+
             if (exhibit == null) return;
 
             _currentExhibit = exhibit;
@@ -175,6 +198,27 @@ namespace ScienceMuseum.UI
             if (_currentExhibit != null)
             {
                 _currentExhibit.ResetSimulation();
+            }
+        }
+
+        private void RebuildChallenges(IChallenge[] challenges)
+        {
+            // Удаляем старые карточки если были
+            foreach (var card in _cards)
+            {
+                if (card != null) Destroy(card.gameObject);
+            }
+            _cards.Clear();
+
+            if (challenges == null || challengesListRoot == null || challengeCardPrefab == null)
+                return;
+
+            // Создаём по карточке на каждое задание
+            foreach (var challenge in challenges)
+            {
+                ChallengeCard card = Instantiate(challengeCardPrefab, challengesListRoot);
+                card.Bind(challenge);
+                _cards.Add(card);
             }
         }
 

@@ -1,11 +1,15 @@
 using UnityEngine;
 using ScienceMuseum.Core;
 using ScienceMuseum.Simulation.Models;
+using ScienceMuseum.Simulation.Challenges;
 
 namespace ScienceMuseum.Exhibits
 {
     public class PendulumExhibit : ExhibitBase
     {
+        private IChallenge[] _challenges;
+        public IChallenge[] Challenges => _challenges;
+
         [Header("Параметры маятника")]
         [Tooltip("Длина нити (метры). ВАЖНО: визуал в сцене должен совпадать.")]
         [Range(0.3f, 2.5f)]
@@ -50,6 +54,7 @@ namespace ScienceMuseum.Exhibits
                 length = Mathf.Clamp(value, 0.3f, 2.5f);
                 if (_model != null) _model.Length = length;
                 UpdateStringAndBobScale();
+                EvaluateChallenges();
             }
         }
 
@@ -60,6 +65,7 @@ namespace ScienceMuseum.Exhibits
             {
                 gravity = Mathf.Clamp(value, 1f, 25f);
                 if (_model != null) _model.Gravity = gravity;
+                EvaluateChallenges();
             }
         }
 
@@ -70,6 +76,7 @@ namespace ScienceMuseum.Exhibits
             {
                 damping = Mathf.Clamp(value, 0f, 2f);
                 if (_model != null) _model.Damping = damping;
+                EvaluateChallenges();
             }
         }
 
@@ -83,13 +90,24 @@ namespace ScienceMuseum.Exhibits
 
         protected override void Awake()
         {
-            base.Awake();  // базовый класс настраивает подсветку
+            base.Awake();
 
             _model = new PendulumModel
             {
                 Length = length,
                 Gravity = gravity,
                 Damping = damping
+            };
+
+            // Создаём задания для этого экспоната
+            _challenges = new IChallenge[]
+            {
+        new TargetPeriodChallenge(this, targetPeriod: 2.0f, tolerance: 0.05f),
+        new TargetPeriodChallenge(this, targetPeriod: 1.0f, tolerance: 0.05f,
+            title: "Быстрый маятник",
+            description: "Сделай так, чтобы маятник совершал одно колебание за 1 секунду."),
+        new MatchGravityChallenge(this, 1.62f, "Луне"),
+        new MatchGravityChallenge(this, 3.71f, "Марсе"),
             };
 
             ResetSimulation();
@@ -176,6 +194,15 @@ namespace ScienceMuseum.Exhibits
                 _model.Gravity = gravity;
                 _model.Damping = damping;
                 UpdateStringAndBobScale();
+            }
+        }
+
+        private void EvaluateChallenges()
+        {
+            if (_challenges == null) return;
+            foreach (var challenge in _challenges)
+            {
+                challenge.Evaluate();
             }
         }
 
