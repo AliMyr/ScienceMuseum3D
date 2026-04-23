@@ -40,6 +40,47 @@ namespace ScienceMuseum.Exhibits
         // Флаг - запущена ли симуляция
         private bool _isRunning = false;
 
+        // ── Публичные свойства для UI-панели ─────────────────────────────────
+
+        public float Length
+        {
+            get => length;
+            set
+            {
+                length = Mathf.Clamp(value, 0.3f, 2.5f);
+                if (_model != null) _model.Length = length;
+                UpdateStringAndBobScale();
+            }
+        }
+
+        public float Gravity
+        {
+            get => gravity;
+            set
+            {
+                gravity = Mathf.Clamp(value, 1f, 25f);
+                if (_model != null) _model.Gravity = gravity;
+            }
+        }
+
+        public float Damping
+        {
+            get => damping;
+            set
+            {
+                damping = Mathf.Clamp(value, 0f, 2f);
+                if (_model != null) _model.Damping = damping;
+            }
+        }
+
+        public float InitialAngleDegrees
+        {
+            get => initialAngleDegrees;
+            set => initialAngleDegrees = Mathf.Clamp(value, -170f, 170f);
+        }
+
+        public string Description => description;
+
         protected override void Awake()
         {
             base.Awake();  // базовый класс настраивает подсветку
@@ -141,10 +182,18 @@ namespace ScienceMuseum.Exhibits
         // Реализация абстрактного метода ExhibitBase
         public override void OnActivate()
         {
-            // Пока просто выводим информацию.
-            // В следующей итерации здесь будет открытие UI-панели изучения.
-            Debug.Log($"[Pendulum] Активирован. L={length}m, g={gravity}, угол={initialAngleDegrees}°");
-            Debug.Log($"[Pendulum] Теоретический период T = 2π√(L/g) = {_model.TheoreticalPeriod():F3} с");
+            // Находим панель в сцене и просим её открыть с этим экспонатом.
+            // Для простоты используем FindObjectOfType.
+            // В большом проекте - синглтон-менеджер или DI.
+            var studyPanel = FindObjectOfType<ScienceMuseum.UI.ExhibitStudyPanel>(true);
+            if (studyPanel != null)
+            {
+                studyPanel.Open(this);
+            }
+            else
+            {
+                Debug.LogWarning("[Pendulum] ExhibitStudyPanel не найдена в сцене!");
+            }
         }
     }
 }
