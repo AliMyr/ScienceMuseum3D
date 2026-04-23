@@ -556,6 +556,7 @@ GameObject:
   - component: {fileID: 945078024}
   - component: {fileID: 945078023}
   - component: {fileID: 945078025}
+  - component: {fileID: 945078026}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -623,6 +624,24 @@ MonoBehaviour:
   mouseSensitivityX: 2
   mouseSensitivityY: 2
   maxLookAngle: 85
+  playerCamera: {fileID: 330585545}
+--- !u!114 &945078026
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 945078022}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e66f07158ca63464a93230b845a86e0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ScienceMuseum.Player.ExhibitInteractor
+  interactionDistance: 4
+  exhibitLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  interactionKey: 101
   playerCamera: {fileID: 330585545}
 --- !u!1 &1106010233
 GameObject:
