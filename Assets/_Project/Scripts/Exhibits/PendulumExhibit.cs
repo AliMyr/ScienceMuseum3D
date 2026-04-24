@@ -9,7 +9,10 @@ namespace ScienceMuseum.Exhibits
     public class PendulumExhibit : ExhibitBase
     {
         private IChallenge[] _challenges;
-        public IChallenge[] Challenges => _challenges;
+        public override IChallenge[] Challenges => _challenges;
+        public override ExhibitParameter[] Parameters => _parameters;
+
+        private ExhibitParameter[] _parameters;
 
         [Header("Параметры маятника")]
         [Tooltip("Длина нити (метры). ВАЖНО: визуал в сцене должен совпадать.")]
@@ -87,8 +90,6 @@ namespace ScienceMuseum.Exhibits
             set => initialAngleDegrees = Mathf.Clamp(value, -170f, 170f);
         }
 
-        public string Description => description;
-
         protected override void Awake()
         {
             base.Awake();
@@ -111,6 +112,30 @@ namespace ScienceMuseum.Exhibits
                     description: "Сделай так, чтобы маятник совершал одно колебание за 1 секунду."),
                 new MatchGravityChallenge("pendulum.gravity_moon", this, 1.62f, "Луне"),
                 new MatchGravityChallenge("pendulum.gravity_mars", this, 3.71f, "Марсе"),
+            };
+
+            _parameters = new[]
+            {
+                new ExhibitParameter(
+                    "Длина нити L", "м", 0.3f, 2.5f,
+                    () => length,
+                    v => Length = v,
+                    decimals: 2),
+                new ExhibitParameter(
+                    "Гравитация g", "м/с²", 1f, 25f,
+                    () => gravity,
+                    v => Gravity = v,
+                    decimals: 2),
+                new ExhibitParameter(
+                    "Трение k", "", 0f, 2f,
+                    () => damping,
+                    v => Damping = v,
+                    decimals: 2),
+                new ExhibitParameter(
+                    "Начальный угол θ", "°", -170f, 170f,
+                    () => initialAngleDegrees,
+                    v => InitialAngleDegrees = v,
+                    decimals: 0),
             };
 
             ResetSimulation();
@@ -177,7 +202,7 @@ namespace ScienceMuseum.Exhibits
             }
         }
 
-        public void ResetSimulation()
+        public override void ResetSimulation()
         {
             if (_model == null) return;
 
@@ -218,22 +243,35 @@ namespace ScienceMuseum.Exhibits
             }
         }
 
-        // Реализация абстрактного метода ExhibitBase
         public override void OnActivate()
         {
-            // Отмечаем что игрок "изучил" этот экспонат
             ProgressManager.Instance?.MarkExhibitStudied(ExhibitId);
 
-            // Открываем панель изучения
-            var studyPanel = FindObjectOfType<ScienceMuseum.UI.ExhibitStudyPanel>(true);
+            var studyPanel = FindObjectOfType<UI.ExhibitStudyPanel>(true);
             if (studyPanel != null)
             {
                 studyPanel.Open(this);
             }
             else
             {
-                Debug.LogWarning("[Pendulum] ExhibitStudyPanel не найдена в сцене!");
+                Debug.LogWarning("[Pendulum] ExhibitStudyPanel не найдена!");
             }
+        }
+
+        public override string GetFormulaText()
+        {
+            float L = length;
+            float g = gravity;
+            float period = 2f * Mathf.PI * Mathf.Sqrt(L / g);
+            float frequency = 1f / period;
+
+            return
+                "<b>Формула периода малых колебаний:</b>\n" +
+                $"  T = 2π·√(L/g) = 2π·√({L:F2}/{g:F2})\n" +
+                $"  T = <color=#FFD700>{period:F3} с</color>\n\n" +
+                $"<b>Частота:</b>  f = 1/T = <color=#FFD700>{frequency:F3} Гц</color>\n\n" +
+                "<i>Формула работает для малых углов (до ~15°). " +
+                "При больших углах реальный период больше.</i>";
         }
     }
 }

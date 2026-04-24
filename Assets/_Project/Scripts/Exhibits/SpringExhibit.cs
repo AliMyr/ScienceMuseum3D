@@ -57,7 +57,10 @@ namespace ScienceMuseum.Exhibits
 
         // Задания
         private IChallenge[] _challenges;
-        public IChallenge[] Challenges => _challenges;
+        private ExhibitParameter[] _parameters;
+
+        public override IChallenge[] Challenges => _challenges;
+        public override ExhibitParameter[] Parameters => _parameters;
 
         protected override void Awake()
         {
@@ -79,6 +82,30 @@ namespace ScienceMuseum.Exhibits
                     "Медленные колебания (T = 2 с)"),
                 new HeavyMassChallenge("spring.heavy_mass", this),
                 new ShowDampingChallenge("spring.damping", this),
+            };
+
+            _parameters = new[]
+            {
+                new ExhibitParameter(
+                    "Масса m", "кг", 0.1f, 10f,
+                    () => mass,
+                    v => Mass = v,
+                    decimals: 2),
+                new ExhibitParameter(
+                    "Жёсткость k", "Н/м", 5f, 200f,
+                    () => stiffness,
+                    v => Stiffness = v,
+                    decimals: 1),
+                new ExhibitParameter(
+                    "Трение c", "", 0f, 5f,
+                    () => damping,
+                    v => Damping = v,
+                    decimals: 2),
+                new ExhibitParameter(
+                    "Начальное смещение x₀", "м", -0.5f, 0.5f,
+                    () => initialDisplacement,
+                    v => InitialDisplacement = v,
+                    decimals: 2),
             };
 
             ResetSimulation();
@@ -135,7 +162,7 @@ namespace ScienceMuseum.Exhibits
             }
         }
 
-        public void ResetSimulation()
+        public override void ResetSimulation()
         {
             if (_model == null) return;
 
@@ -209,7 +236,6 @@ namespace ScienceMuseum.Exhibits
             set => initialDisplacement = Mathf.Clamp(value, -0.5f, 0.5f);
         }
 
-        public string Description => description;
 
         private void EvaluateChallenges()
         {
@@ -230,17 +256,33 @@ namespace ScienceMuseum.Exhibits
         {
             ProgressManager.Instance?.MarkExhibitStudied(ExhibitId);
 
-            // Пока используем ту же панель что и для маятника.
-            // В следующих итерациях сделаем её универсальной.
             var studyPanel = FindObjectOfType<UI.ExhibitStudyPanel>(true);
             if (studyPanel != null)
             {
-                studyPanel.OpenForSpring(this);
+                studyPanel.Open(this);
             }
             else
             {
                 Debug.LogWarning("[Spring] ExhibitStudyPanel не найдена!");
             }
+        }
+
+        public override string GetFormulaText()
+        {
+            float m = mass;
+            float k = stiffness;
+            float period = 2f * Mathf.PI * Mathf.Sqrt(m / k);
+            float frequency = 1f / period;
+            float omega = Mathf.Sqrt(k / m);
+
+            return
+                "<b>Формула периода:</b>\n" +
+                $"  T = 2π·√(m/k) = 2π·√({m:F2}/{k:F1})\n" +
+                $"  T = <color=#FFD700>{period:F3} с</color>\n\n" +
+                $"<b>Частота:</b>  f = <color=#FFD700>{frequency:F3} Гц</color>\n" +
+                $"<b>Угловая частота:</b>  ω = √(k/m) = {omega:F3} рад/с\n\n" +
+                "<i>Период не зависит от амплитуды — это свойство\n" +
+                "линейного осциллятора.</i>";
         }
     }
 }

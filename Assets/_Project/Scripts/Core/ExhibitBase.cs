@@ -2,6 +2,11 @@ using UnityEngine;
 
 namespace ScienceMuseum.Core
 {
+    /// <summary>
+    /// Базовый класс для всех экспонатов музея.
+    /// Реализует общую логику: подсветка при наведении, хранение метаданных,
+    /// пустые реализации параметров и заданий (наследники переопределяют).
+    /// </summary>
     public abstract class ExhibitBase : MonoBehaviour, IExhibit
     {
         [Header("Идентификация")]
@@ -12,7 +17,7 @@ namespace ScienceMuseum.Core
         [Tooltip("Название - показывается в подсказке и на стенде")]
         [SerializeField] protected string title = "Экспонат";
 
-        [Tooltip("Описание - показывается на табличке рядом")]
+        [Tooltip("Описание - показывается в панели изучения")]
         [TextArea(3, 6)]
         [SerializeField] protected string description = "Описание будет здесь";
 
@@ -26,12 +31,28 @@ namespace ScienceMuseum.Core
         [Tooltip("Интенсивность свечения (0 - нет, больше - ярче)")]
         [SerializeField] protected float highlightIntensity = 2f;
 
+        // Оригинальные материалы (чтобы восстановить при OnFocusExit)
         private Material[] _originalMaterials;
         private Material[] _highlightedMaterials;
         private bool _isHighlighted;
 
-        public string Title => title;
+        // ── Реализация IExhibit ─────────────────────────────────────────
+
         public string ExhibitId => exhibitId;
+        public string Title => title;
+        public virtual string Description => description;
+
+        // По умолчанию у экспоната нет параметров и заданий.
+        // Конкретные экспонаты (PendulumExhibit, SpringExhibit) переопределяют.
+        public virtual ExhibitParameter[] Parameters => null;
+        public virtual IChallenge[] Challenges => null;
+
+        public virtual string GetFormulaText() => string.Empty;
+        public virtual void ResetSimulation() { }
+
+        public abstract void OnActivate();
+
+        // ── Подсветка ───────────────────────────────────────────────────
 
         protected virtual void Awake()
         {
@@ -48,7 +69,6 @@ namespace ScienceMuseum.Core
                 for (int i = 0; i < _originalMaterials.Length; i++)
                 {
                     _highlightedMaterials[i] = new Material(_originalMaterials[i]);
-
                     _highlightedMaterials[i].EnableKeyword("_EMISSION");
                     _highlightedMaterials[i].SetColor(
                         "_EmissionColor",
@@ -79,8 +99,6 @@ namespace ScienceMuseum.Core
                 highlightRenderer.materials = _originalMaterials;
             }
         }
-
-        public abstract void OnActivate();
 
         private void OnDestroy()
         {

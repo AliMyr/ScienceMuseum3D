@@ -1,8 +1,9 @@
+using ScienceMuseum.Core;
+using ScienceMuseum.Managers;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using TMPro;
-using ScienceMuseum.Managers;
+using UnityEngine;
 
 namespace ScienceMuseum.UI
 {
@@ -63,17 +64,9 @@ namespace ScienceMuseum.UI
             var mbs = FindObjectsOfType<MonoBehaviour>(true);
             foreach (var mb in mbs)
             {
-                if (mb is Exhibits.PendulumExhibit pendulum && pendulum.Challenges != null)
+                if (mb is IExhibit exhibit && exhibit.Challenges != null)
                 {
-                    foreach (var ch in pendulum.Challenges)
-                    {
-                        if (!_challengeTitles.ContainsKey(ch.Id))
-                            _challengeTitles[ch.Id] = ch.Title;
-                    }
-                }
-                else if (mb is Exhibits.SpringExhibit spring && spring.Challenges != null)
-                {
-                    foreach (var ch in spring.Challenges)
+                    foreach (var ch in exhibit.Challenges)
                     {
                         if (!_challengeTitles.ContainsKey(ch.Id))
                             _challengeTitles[ch.Id] = ch.Title;

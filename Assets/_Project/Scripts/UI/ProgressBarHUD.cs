@@ -43,24 +43,19 @@ namespace ScienceMuseum.UI
 
         private void CountTotals()
         {
-            // Все экспонаты
-            var exhibits = FindObjectsOfType<MonoBehaviour>(true);
             int exhibitCount = 0;
             int challengeCount = 0;
 
-            foreach (var mb in exhibits)
+            var mbs = FindObjectsOfType<MonoBehaviour>(true);
+            foreach (var mb in mbs)
             {
-                if (mb is IExhibit) exhibitCount++;
-
-                if (mb is Exhibits.PendulumExhibit pendulum)
+                if (mb is IExhibit exhibit)
                 {
-                    if (pendulum.Challenges != null)
-                        challengeCount += pendulum.Challenges.Length;
-                }
-                else if (mb is Exhibits.SpringExhibit spring)
-                {
-                    if (spring.Challenges != null)
-                        challengeCount += spring.Challenges.Length;
+                    exhibitCount++;
+                    if (exhibit.Challenges != null)
+                    {
+                        challengeCount += exhibit.Challenges.Length;
+                    }
                 }
             }
 
