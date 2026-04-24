@@ -50,18 +50,18 @@ namespace ScienceMuseum.UI
 
             foreach (var mb in exhibits)
             {
-                if (mb is IExhibit)
-                {
-                    exhibitCount++;
-                }
+                if (mb is IExhibit) exhibitCount++;
 
-                // Если экспонат имеет задания - считаем их
                 if (mb is Exhibits.PendulumExhibit pendulum)
                 {
                     if (pendulum.Challenges != null)
                         challengeCount += pendulum.Challenges.Length;
                 }
-                // В будущем добавим другие типы экспонатов
+                else if (mb is Exhibits.SpringExhibit spring)
+                {
+                    if (spring.Challenges != null)
+                        challengeCount += spring.Challenges.Length;
+                }
             }
 
             totalExhibits = exhibitCount;

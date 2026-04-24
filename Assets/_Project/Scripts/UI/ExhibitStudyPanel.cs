@@ -49,7 +49,9 @@ namespace ScienceMuseum.UI
 
         // Текущий изучаемый экспонат
         private PendulumExhibit _currentExhibit;
+        private SpringExhibit _currentSpring;
         private bool _isOpen;
+
 
         [Header("Задания")]
         [Tooltip("Контейнер, куда инстанциируются карточки заданий")]
@@ -57,6 +59,7 @@ namespace ScienceMuseum.UI
 
         [Tooltip("Префаб одной карточки задания")]
         [SerializeField] private ChallengeCard challengeCardPrefab;
+
 
         // Существующие карточки (чтобы при смене экспоната пересоздавать)
         private readonly List<ChallengeCard> _cards = new List<ChallengeCard>();
@@ -104,26 +107,78 @@ namespace ScienceMuseum.UI
         /// </summary>
         public void Open(PendulumExhibit exhibit)
         {
-            RebuildChallenges(exhibit.Challenges);
-
             if (exhibit == null) return;
 
             _currentExhibit = exhibit;
+            _currentSpring = null;      // сбросить предыдущий spring-контекст
             _isOpen = true;
 
-            // Заполняем заголовок и описание
+            RebuildChallenges(exhibit.Challenges);
+
             if (titleText != null) titleText.text = exhibit.Title;
             if (descriptionText != null) descriptionText.text = exhibit.Description;
 
-            // Читаем текущие параметры экспоната в слайдеры
-            if (lengthSlider != null) lengthSlider.SetValueWithoutNotify(exhibit.Length);
-            if (gravitySlider != null) gravitySlider.SetValueWithoutNotify(exhibit.Gravity);
-            if (dampingSlider != null) dampingSlider.SetValueWithoutNotify(exhibit.Damping);
-            if (angleSlider != null) angleSlider.SetValueWithoutNotify(exhibit.InitialAngleDegrees);
+            ConfigureSliderForPendulum();
 
-            // Обновляем подписи под слайдерами
+            if (panelRoot != null) panelRoot.SetActive(true);
+            if (hudRoot != null) hudRoot.SetActive(false);
+            if (firstPersonController != null) firstPersonController.enabled = false;
+            if (exhibitInteractor != null) exhibitInteractor.enabled = false;
+
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
+        private void ConfigureSliderForPendulum()
+        {
+            if (_currentExhibit == null) return;
+
+            if (lengthSlider != null)
+            {
+                lengthSlider.minValue = 0.3f;
+                lengthSlider.maxValue = 2.5f;
+                lengthSlider.SetValueWithoutNotify(_currentExhibit.Length);
+            }
+            if (gravitySlider != null)
+            {
+                gravitySlider.minValue = 1f;
+                gravitySlider.maxValue = 25f;
+                gravitySlider.SetValueWithoutNotify(_currentExhibit.Gravity);
+            }
+            if (dampingSlider != null)
+            {
+                dampingSlider.minValue = 0f;
+                dampingSlider.maxValue = 2f;
+                dampingSlider.SetValueWithoutNotify(_currentExhibit.Damping);
+            }
+            if (angleSlider != null)
+            {
+                angleSlider.minValue = -170f;
+                angleSlider.maxValue = 170f;
+                angleSlider.SetValueWithoutNotify(_currentExhibit.InitialAngleDegrees);
+            }
+
             UpdateLabels();
             UpdateFormulas();
+        }
+
+        // ── Открытие для пружины ─────────────────────────────────────────────
+
+        public void OpenForSpring(Exhibits.SpringExhibit exhibit)
+        {
+            if (exhibit == null) return;
+
+            _currentExhibit = null;  // не маятник
+            _currentSpring = exhibit;
+            _isOpen = true;
+
+            RebuildChallenges(exhibit.Challenges);
+
+            if (titleText != null) titleText.text = exhibit.Title;
+            if (descriptionText != null) descriptionText.text = exhibit.Description;
+
+            // Переназначаем слайдеры под параметры пружины
+            ConfigureSliderForSpring();
 
             // Переключаем режимы
             if (panelRoot != null) panelRoot.SetActive(true);
@@ -131,9 +186,41 @@ namespace ScienceMuseum.UI
             if (firstPersonController != null) firstPersonController.enabled = false;
             if (exhibitInteractor != null) exhibitInteractor.enabled = false;
 
-            // Освобождаем курсор
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
+        }
+
+        private void ConfigureSliderForSpring()
+        {
+            if (_currentSpring == null) return;
+
+            if (lengthSlider != null)
+            {
+                lengthSlider.minValue = 0.1f;
+                lengthSlider.maxValue = 10f;
+                lengthSlider.SetValueWithoutNotify(_currentSpring.Mass);
+            }
+            if (gravitySlider != null)
+            {
+                gravitySlider.minValue = 5f;
+                gravitySlider.maxValue = 200f;
+                gravitySlider.SetValueWithoutNotify(_currentSpring.Stiffness);
+            }
+            if (dampingSlider != null)
+            {
+                dampingSlider.minValue = 0f;
+                dampingSlider.maxValue = 5f;
+                dampingSlider.SetValueWithoutNotify(_currentSpring.Damping);
+            }
+            if (angleSlider != null)
+            {
+                angleSlider.minValue = -0.5f;
+                angleSlider.maxValue = 0.5f;
+                angleSlider.SetValueWithoutNotify(_currentSpring.InitialDisplacement);
+            }
+
+            UpdateLabels();
+            UpdateFormulas();
         }
 
         /// <summary>
@@ -143,6 +230,7 @@ namespace ScienceMuseum.UI
         {
             _isOpen = false;
             _currentExhibit = null;
+            _currentSpring = null;
 
             if (panelRoot != null) panelRoot.SetActive(false);
             if (hudRoot != null) hudRoot.SetActive(true);
@@ -158,9 +246,10 @@ namespace ScienceMuseum.UI
         private void OnLengthChanged(float value)
         {
             if (_currentExhibit != null)
-            {
                 _currentExhibit.Length = value;
-            }
+            else if (_currentSpring != null)
+                _currentSpring.Mass = value;
+
             UpdateLabels();
             UpdateFormulas();
         }
@@ -168,9 +257,10 @@ namespace ScienceMuseum.UI
         private void OnGravityChanged(float value)
         {
             if (_currentExhibit != null)
-            {
                 _currentExhibit.Gravity = value;
-            }
+            else if (_currentSpring != null)
+                _currentSpring.Stiffness = value;
+
             UpdateLabels();
             UpdateFormulas();
         }
@@ -178,27 +268,29 @@ namespace ScienceMuseum.UI
         private void OnDampingChanged(float value)
         {
             if (_currentExhibit != null)
-            {
                 _currentExhibit.Damping = value;
-            }
+            else if (_currentSpring != null)
+                _currentSpring.Damping = value;
+
             UpdateLabels();
         }
 
         private void OnAngleChanged(float value)
         {
             if (_currentExhibit != null)
-            {
                 _currentExhibit.InitialAngleDegrees = value;
-            }
+            else if (_currentSpring != null)
+                _currentSpring.InitialDisplacement = value;
+
             UpdateLabels();
         }
 
         private void OnResetClicked()
         {
             if (_currentExhibit != null)
-            {
                 _currentExhibit.ResetSimulation();
-            }
+            else if (_currentSpring != null)
+                _currentSpring.ResetSimulation();
         }
 
         private void RebuildChallenges(IChallenge[] challenges)
@@ -226,38 +318,65 @@ namespace ScienceMuseum.UI
 
         private void UpdateLabels()
         {
-            if (lengthSlider != null && lengthLabel != null)
-                lengthLabel.text = $"Длина нити L = {lengthSlider.value:F2} м";
-
-            if (gravitySlider != null && gravityLabel != null)
-                gravityLabel.text = $"Гравитация g = {gravitySlider.value:F2} м/с²";
-
-            if (dampingSlider != null && dampingLabel != null)
-                dampingLabel.text = $"Трение k = {dampingSlider.value:F2}";
-
-            if (angleSlider != null && angleLabel != null)
-                angleLabel.text = $"Начальный угол θ = {angleSlider.value:F0}°";
+            if (_currentExhibit != null)
+            {
+                if (lengthSlider != null && lengthLabel != null)
+                    lengthLabel.text = $"Длина нити L = {lengthSlider.value:F2} м";
+                if (gravitySlider != null && gravityLabel != null)
+                    gravityLabel.text = $"Гравитация g = {gravitySlider.value:F2} м/с²";
+                if (dampingSlider != null && dampingLabel != null)
+                    dampingLabel.text = $"Трение k = {dampingSlider.value:F2}";
+                if (angleSlider != null && angleLabel != null)
+                    angleLabel.text = $"Начальный угол θ = {angleSlider.value:F0}°";
+            }
+            else if (_currentSpring != null)
+            {
+                if (lengthSlider != null && lengthLabel != null)
+                    lengthLabel.text = $"Масса m = {lengthSlider.value:F2} кг";
+                if (gravitySlider != null && gravityLabel != null)
+                    gravityLabel.text = $"Жёсткость k = {gravitySlider.value:F1} Н/м";
+                if (dampingSlider != null && dampingLabel != null)
+                    dampingLabel.text = $"Трение c = {dampingSlider.value:F2}";
+                if (angleSlider != null && angleLabel != null)
+                    angleLabel.text = $"Начальное смещение x₀ = {angleSlider.value:F2} м";
+            }
         }
 
         private void UpdateFormulas()
         {
-            if (formulaText == null || lengthSlider == null || gravitySlider == null) return;
+            if (formulaText == null) return;
 
-            float L = lengthSlider.value;
-            float g = gravitySlider.value;
-            float period = 2f * Mathf.PI * Mathf.Sqrt(L / g);
-            float frequency = 1f / period;
+            if (_currentExhibit != null)
+            {
+                float L = lengthSlider.value;
+                float g = gravitySlider.value;
+                float period = 2f * Mathf.PI * Mathf.Sqrt(L / g);
+                float frequency = 1f / period;
 
-            // Собираем информативный текст с формулами
-            formulaText.text =
-                "<b>Формула периода малых колебаний:</b>\n" +
-                $"  T = 2π·√(L/g) = 2π·√({L:F2}/{g:F2})\n" +
-                $"  T = <color=#FFD700>{period:F3} с</color>\n" +
-                "\n" +
-                $"<b>Частота:</b>  f = 1/T = <color=#FFD700>{frequency:F3} Гц</color>\n" +
-                "\n" +
-                "<i>Формула работает для малых углов (до ~15°). " +
-                "При больших углах реальный период больше.</i>";
+                formulaText.text =
+                    "<b>Формула периода малых колебаний:</b>\n" +
+                    $"  T = 2π·√(L/g) = 2π·√({L:F2}/{g:F2})\n" +
+                    $"  T = <color=#FFD700>{period:F3} с</color>\n\n" +
+                    $"<b>Частота:</b>  f = 1/T = <color=#FFD700>{frequency:F3} Гц</color>\n\n" +
+                    "<i>Формула работает для малых углов (до ~15°).</i>";
+            }
+            else if (_currentSpring != null)
+            {
+                float m = lengthSlider.value;
+                float k = gravitySlider.value;
+                float period = 2f * Mathf.PI * Mathf.Sqrt(m / k);
+                float frequency = 1f / period;
+                float omega = Mathf.Sqrt(k / m);
+
+                formulaText.text =
+                    "<b>Формула периода:</b>\n" +
+                    $"  T = 2π·√(m/k) = 2π·√({m:F2}/{k:F1})\n" +
+                    $"  T = <color=#FFD700>{period:F3} с</color>\n\n" +
+                    $"<b>Частота:</b>  f = <color=#FFD700>{frequency:F3} Гц</color>\n" +
+                    $"<b>Угловая частота:</b>  ω = √(k/m) = {omega:F3} рад/с\n\n" +
+                    "<i>Период не зависит от амплитуды — это свойство\n" +
+                    "линейного осциллятора.</i>";
+            }
         }
     }
 }

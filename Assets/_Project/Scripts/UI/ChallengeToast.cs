@@ -71,6 +71,14 @@ namespace ScienceMuseum.UI
                             _challengeTitles[ch.Id] = ch.Title;
                     }
                 }
+                else if (mb is Exhibits.SpringExhibit spring && spring.Challenges != null)
+                {
+                    foreach (var ch in spring.Challenges)
+                    {
+                        if (!_challengeTitles.ContainsKey(ch.Id))
+                            _challengeTitles[ch.Id] = ch.Title;
+                    }
+                }
             }
         }
 
