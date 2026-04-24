@@ -236,7 +236,7 @@ namespace ScienceMuseum.UI
                 dampingLabel.text = $"Трение k = {dampingSlider.value:F2}";
 
             if (angleSlider != null && angleLabel != null)
-                angleLabel.text = $"Начальный угол θ₀ = {angleSlider.value:F0}°";
+                angleLabel.text = $"Начальный угол θ = {angleSlider.value:F0}°";
         }
 
         private void UpdateFormulas()

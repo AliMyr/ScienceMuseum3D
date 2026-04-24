@@ -647,14 +647,14 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 120400721}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2113955230}
   - {fileID: 1284934182}
-  m_Father: {fileID: 1705478971}
+  m_Father: {fileID: 1255325218}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
@@ -673,8 +673,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9fb7898ca7b81424d981b88c8ead4efb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ScienceMuseum.UI.ChallengeToast
-  toastRoot: {fileID: 120400721}
   toastText: {fileID: 1284934183}
+  canvasGroup: {fileID: 120400724}
   visibleDuration: 2.5
   fadeDuration: 0.4
 --- !u!225 &120400724
@@ -3146,6 +3146,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 780308512}
+  - component: {fileID: 780308513}
   m_Layer: 0
   m_Name: _Managers
   m_TagString: Untagged
@@ -3165,10 +3166,21 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1261921548}
+  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &780308513
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 780308511}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 630538e45e8bc02498b3e95d997eba32, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ScienceMuseum.Managers.ProgressManager
 --- !u!1 &785105345
 GameObject:
   m_ObjectHideFlags: 0
@@ -5203,6 +5215,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 785105346}
+  - {fileID: 120400722}
   - {fileID: 1705478971}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -5341,50 +5354,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1258058873}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &1261921547
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1261921548}
-  - component: {fileID: 1261921549}
-  m_Layer: 0
-  m_Name: ProgressManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1261921548
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1261921547}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 780308512}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1261921549
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1261921547}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 630538e45e8bc02498b3e95d997eba32, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ScienceMuseum.Managers.ProgressManager
 --- !u!1 &1284934181
 GameObject:
   m_ObjectHideFlags: 0
@@ -6875,7 +6844,6 @@ RectTransform:
   - {fileID: 268669496}
   - {fileID: 224115569}
   - {fileID: 877901477}
-  - {fileID: 120400722}
   m_Father: {fileID: 1255325218}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}

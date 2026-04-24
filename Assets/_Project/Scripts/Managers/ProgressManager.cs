@@ -46,6 +46,9 @@ namespace ScienceMuseum.Managers
             _completedChallenges.Add(challengeId);
             SaveProgress();
 
+            Debug.Log($"[ProgressManager] CompleteChallenge: {challengeId}. " +
+                      $"Subscribers: {OnChallengeCompleted?.GetInvocationList().Length ?? 0}");
+
             OnChallengeCompleted?.Invoke(challengeId);
             OnProgressChanged?.Invoke();
         }
