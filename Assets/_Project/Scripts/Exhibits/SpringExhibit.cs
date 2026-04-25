@@ -194,7 +194,6 @@ namespace ScienceMuseum.Exhibits
             {
                 mass = Mathf.Clamp(value, 0.1f, 10f);
                 if (_model != null) _model.Mass = mass;
-                EvaluateChallenges();
             }
         }
 
@@ -205,7 +204,6 @@ namespace ScienceMuseum.Exhibits
             {
                 stiffness = Mathf.Clamp(value, 5f, 200f);
                 if (_model != null) _model.Stiffness = stiffness;
-                EvaluateChallenges();
             }
         }
 
@@ -216,7 +214,6 @@ namespace ScienceMuseum.Exhibits
             {
                 damping = Mathf.Clamp(value, 0f, 5f);
                 if (_model != null) _model.Damping = damping;
-                EvaluateChallenges();
             }
         }
 
@@ -237,20 +234,6 @@ namespace ScienceMuseum.Exhibits
         }
 
 
-        private void EvaluateChallenges()
-        {
-            if (_challenges == null) return;
-            foreach (var challenge in _challenges)
-            {
-                var previousStatus = challenge.Status;
-                challenge.Evaluate();
-                if (previousStatus != ChallengeStatus.Completed &&
-                    challenge.Status == ChallengeStatus.Completed)
-                {
-                    ProgressManager.Instance?.CompleteChallenge(challenge.Id);
-                }
-            }
-        }
 
         public override void OnActivate()
         {

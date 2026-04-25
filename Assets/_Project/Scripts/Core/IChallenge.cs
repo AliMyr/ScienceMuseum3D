@@ -4,19 +4,24 @@ namespace ScienceMuseum.Core
     {
         NotStarted,
         InProgress,
-        Completed
+        Completed,
+        Failed
     }
 
     public interface IChallenge
     {
         string Id { get; }
-
         string Title { get; }
         string Description { get; }
         string Hint { get; }
         ChallengeStatus Status { get; }
 
-        void Evaluate();
+        int FailedAttempts { get; }
+
+        string SolutionText { get; }
+
+        bool CheckAnswer();
+
         string GetProgressText();
     }
 }

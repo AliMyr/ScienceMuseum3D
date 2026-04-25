@@ -58,7 +58,6 @@ namespace ScienceMuseum.Exhibits
                 length = Mathf.Clamp(value, 0.3f, 2.5f);
                 if (_model != null) _model.Length = length;
                 UpdateStringAndBobScale();
-                EvaluateChallenges();
             }
         }
 
@@ -69,7 +68,6 @@ namespace ScienceMuseum.Exhibits
             {
                 gravity = Mathf.Clamp(value, 1f, 25f);
                 if (_model != null) _model.Gravity = gravity;
-                EvaluateChallenges();
             }
         }
 
@@ -80,7 +78,6 @@ namespace ScienceMuseum.Exhibits
             {
                 damping = Mathf.Clamp(value, 0f, 2f);
                 if (_model != null) _model.Damping = damping;
-                EvaluateChallenges();
             }
         }
 
@@ -225,23 +222,7 @@ namespace ScienceMuseum.Exhibits
             }
         }
 
-        private void EvaluateChallenges()
-        {
-            if (_challenges == null) return;
-
-            foreach (var challenge in _challenges)
-            {
-                var previousStatus = challenge.Status;
-                challenge.Evaluate();
-
-                // Если только что выполнили - регистрируем в менеджере прогресса
-                if (previousStatus != ChallengeStatus.Completed &&
-                    challenge.Status == ChallengeStatus.Completed)
-                {
-                    ProgressManager.Instance?.CompleteChallenge(challenge.Id);
-                }
-            }
-        }
+        
 
         public override void OnActivate()
         {

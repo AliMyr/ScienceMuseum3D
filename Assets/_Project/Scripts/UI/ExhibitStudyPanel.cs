@@ -17,8 +17,9 @@ namespace ScienceMuseum.UI
         [Header("Контейнеры и префабы")]
         [SerializeField] private RectTransform parametersContainer;
         [SerializeField] private ParameterSliderRow parameterRowPrefab;
-        [SerializeField] private RectTransform challengesListRoot;
-        [SerializeField] private ChallengeCard challengeCardPrefab;
+
+        [Header("Задания")]
+        [SerializeField] private TaskCardController taskCard;
 
         [Header("Кнопки")]
         [SerializeField] private Button resetButton;
@@ -35,7 +36,6 @@ namespace ScienceMuseum.UI
 
         // Динамически созданные UI элементы
         private readonly List<ParameterSliderRow> _sliderRows = new List<ParameterSliderRow>();
-        private readonly List<ChallengeCard> _challengeCards = new List<ChallengeCard>();
 
         private void Awake()
         {
@@ -66,10 +66,6 @@ namespace ScienceMuseum.UI
                     if (row != null) row.UpdateLabel();
                 }
 
-                foreach (var card in _challengeCards)
-                {
-                    if (card != null) card.Refresh();
-                }
             }
         }
 
@@ -85,7 +81,8 @@ namespace ScienceMuseum.UI
             if (formulaText != null) formulaText.text = exhibit.GetFormulaText();
 
             BuildParameters(exhibit.Parameters);
-            BuildChallenges(exhibit.Challenges);
+
+            if (taskCard != null) taskCard.SetChallenges(exhibit.Challenges);
 
             if (panelRoot != null) panelRoot.SetActive(true);
             if (hudRoot != null) hudRoot.SetActive(false);
@@ -131,24 +128,7 @@ namespace ScienceMuseum.UI
             }
         }
 
-        private void BuildChallenges(IChallenge[] challenges)
-        {
-            foreach (var card in _challengeCards)
-            {
-                if (card != null) Destroy(card.gameObject);
-            }
-            _challengeCards.Clear();
-
-            if (challenges == null || challengesListRoot == null || challengeCardPrefab == null)
-                return;
-
-            foreach (var challenge in challenges)
-            {
-                ChallengeCard card = Instantiate(challengeCardPrefab, challengesListRoot);
-                card.Bind(challenge);
-                _challengeCards.Add(card);
-            }
-        }
+        
 
         private void OnResetClicked()
         {
