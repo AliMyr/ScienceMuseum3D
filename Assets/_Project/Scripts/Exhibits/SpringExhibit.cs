@@ -102,7 +102,7 @@ namespace ScienceMuseum.Exhibits
                     v => Damping = v,
                     decimals: 2),
                 new ExhibitParameter(
-                    "Начальное смещение x₀", "м", -0.5f, 0.5f,
+                    "Начальное смещение x0", "м", -0.5f, 0.5f,
                     () => initialDisplacement,
                     v => InitialDisplacement = v,
                     decimals: 2),

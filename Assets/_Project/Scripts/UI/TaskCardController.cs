@@ -104,7 +104,7 @@ namespace ScienceMuseum.UI
             switch (current.Status)
             {
                 case ChallengeStatus.Completed:
-                    SetFeedback("✓ Это задание уже выполнено правильно!", colorCorrect);
+                    SetFeedback("Это задание уже выполнено правильно!", colorCorrect);
                     if (checkButton != null) checkButton.interactable = false;
                     break;
                 case ChallengeStatus.Failed:
@@ -136,16 +136,14 @@ namespace ScienceMuseum.UI
 
             if (correct)
             {
-                // Регистрируем в прогресс-менеджере (он сам не будет повторно слать тост)
                 ProgressManager.Instance?.CompleteChallenge(current.Id);
-
-                SetFeedback($"✓ Правильно! Задание выполнено.", colorCorrect);
+                SetFeedback("[ПРАВИЛЬНО] Задание выполнено.", colorCorrect);
                 if (checkButton != null) checkButton.interactable = false;
                 if (showSolutionButton != null) showSolutionButton.interactable = false;
             }
             else
             {
-                string msg = $"✗ Неверно. Попыток: {current.FailedAttempts}.";
+                string msg = $"[НЕВЕРНО] Попыток: {current.FailedAttempts}.";
                 if (current.FailedAttempts >= failsBeforeSolution)
                 {
                     msg += "\nМожешь нажать «Показать решение».";

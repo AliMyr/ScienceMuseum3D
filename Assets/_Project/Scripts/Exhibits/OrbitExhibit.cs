@@ -103,17 +103,17 @@ namespace ScienceMuseum.Exhibits
             _parameters = new[]
             {
                 new ExhibitParameter(
-                    "Начальный радиус r₀", "ед", 0.3f, 1.0f,
+                    "Начальный радиус r0", "ед", 0.3f, 1.0f,
                     () => initialRadius,
                     v => { InitialRadius = v; ResetSimulation(); },
                     decimals: 2),
                 new ExhibitParameter(
-                    "Начальная скорость v₀", "ед/с", 5f, 30f,
+                    "Начальная скорость v0", "ед/с", 5f, 30f,
                     () => initialSpeed,
                     v => { InitialSpeed = v; ResetSimulation(); },
                     decimals: 2),
                 new ExhibitParameter(
-                    "Гравитация Солнца μ", "", 20f, 300f,
+                    "Гравитация Солнца mu", "", 20f, 300f,
                     () => mu,
                     v => { Mu = v; ResetSimulation(); },
                     decimals: 1),
@@ -185,23 +185,20 @@ namespace ScienceMuseum.Exhibits
         {
             float v1 = FirstCosmicAtInit;
             float v2 = SecondCosmicAtInit;
-
-            // Текущий радиус и скорость
             float r = CurrentRadius;
             float v = CurrentSpeed;
 
             return
                 "<b>Закон тяготения Ньютона:</b>\n" +
                 "  F = G·M·m / r²\n\n" +
-                "<b>Космические скорости</b> (для начального r = " + initialRadius.ToString("F2") + "):\n" +
-                $"  1-я (круговая):   v₁ = √(μ/r) = <color=#FFD700>{v1:F2}</color>\n" +
-                $"  2-я (отрыв):       v₂ = v₁·√2 = <color=#FFD700>{v2:F2}</color>\n\n" +
+                $"<b>Космические скорости</b> (для r = {initialRadius:F2}):\n" +
+                $"  Круговая:   v1 = sqrt(mu/r) = <color=#FFD700>{v1:F2}</color>\n" +
+                $"  Отрыва:     v2 = v1 · sqrt(2) = <color=#FFD700>{v2:F2}</color>\n\n" +
                 "<b>Текущее состояние:</b>\n" +
                 $"  r = {r:F3},  v = {v:F2}\n" +
                 $"  Орбита: <color=#FFD700>{CurrentOrbitType}</color>\n\n" +
-                "<i>Подбери v₀ для разных типов орбит. " +
-                "Меньше v₁ — упадёт. Между v₁ и v₂ — эллипс. " +
-                "Больше v₂ — улетит.</i>";
+                "<i>Меньше круговой — упадёт. Между круговой и отрыва — эллипс. " +
+                "Больше отрыва — улетит.</i>";
         }
 
         public override void OnActivate()
