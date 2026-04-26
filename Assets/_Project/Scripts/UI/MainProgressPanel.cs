@@ -43,6 +43,10 @@ namespace ScienceMuseum.UI
         [Header("Клавиша открытия/закрытия")]
         [SerializeField] private KeyCode toggleKey = KeyCode.Tab;
 
+        [Header("Возврат в меню")]
+        [SerializeField] private Button menuButton;
+        [SerializeField] private string menuSceneName = "MainMenu";
+
         // Динамически созданные карточки
         private readonly List<ExhibitCard> _cards = new List<ExhibitCard>();
         private bool _isOpen;
@@ -58,6 +62,8 @@ namespace ScienceMuseum.UI
             {
                 playerTransform = firstPersonController.transform;
             }
+
+            if (menuButton != null) menuButton.onClick.AddListener(GoToMainMenu);
         }
 
         private void Start()
@@ -210,6 +216,11 @@ namespace ScienceMuseum.UI
             if (characterController != null) characterController.enabled = true;
 
             Close();
+        }
+
+        private void GoToMainMenu()
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene(menuSceneName);
         }
     }
 }
