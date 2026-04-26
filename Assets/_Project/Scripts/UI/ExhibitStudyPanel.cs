@@ -51,6 +51,7 @@ namespace ScienceMuseum.UI
         {
             if (_isOpen && Input.GetKeyDown(KeyCode.Escape))
             {
+                Debug.Log("[StudyPanel] Escape нажат, закрываю");
                 Close();
             }
 
@@ -71,6 +72,9 @@ namespace ScienceMuseum.UI
 
         public void Open(IExhibit exhibit)
         {
+            Debug.Log($"[StudyPanel] Open вызван для {exhibit?.Title ?? "NULL"}. " +
+                      $"panelRoot активен: {(panelRoot != null ? panelRoot.activeSelf.ToString() : "panelRoot=NULL")}");
+
             if (exhibit == null) return;
 
             _currentExhibit = exhibit;
@@ -81,7 +85,6 @@ namespace ScienceMuseum.UI
             if (formulaText != null) formulaText.text = exhibit.GetFormulaText();
 
             BuildParameters(exhibit.Parameters);
-
             if (taskCard != null) taskCard.SetChallenges(exhibit.Challenges);
 
             if (panelRoot != null) panelRoot.SetActive(true);
@@ -91,10 +94,15 @@ namespace ScienceMuseum.UI
 
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
+
+            Debug.Log($"[StudyPanel] Open завершён. panelRoot активен: " +
+                      $"{(panelRoot != null ? panelRoot.activeSelf.ToString() : "NULL")}");
         }
 
         public void Close()
         {
+            Debug.Log($"[StudyPanel] Close вызван. _isOpen={_isOpen}");
+
             _isOpen = false;
             _currentExhibit = null;
 

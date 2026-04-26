@@ -117,5 +117,14 @@ namespace ScienceMuseum.Player
 
             _controller.Move(finalMove * Time.deltaTime);
         }
+
+        public void ResetVerticalRotation()
+        {
+            _verticalRotation = 0f;
+            if (playerCamera != null)
+            {
+                playerCamera.transform.localRotation = Quaternion.Euler(0, 0, 0);
+            }
+        }
     }
 }

@@ -31,10 +31,24 @@ namespace ScienceMuseum.Core
         [Tooltip("Интенсивность свечения (0 - нет, больше - ярче)")]
         [SerializeField] protected float highlightIntensity = 2f;
 
+        [Header("Метаданные для главной панели")]
+        [Tooltip("Тема, например 'Механические колебания'")]
+        [SerializeField] protected string topic = "Тема не задана";
+
+        [Tooltip("Школьный класс, например '9 класс'")]
+        [SerializeField] protected string grade = "Класс";
+
+        [Tooltip("Точка телепортации игрока к этому экспонату. Создай пустой " +
+                 "GameObject рядом с пьедесталом и назначь его сюда.")]
+        [SerializeField] protected Transform viewPoint;
+
         // Оригинальные материалы (чтобы восстановить при OnFocusExit)
         private Material[] _originalMaterials;
         private Material[] _highlightedMaterials;
         private bool _isHighlighted;
+        public virtual string Topic => topic;
+        public virtual string Grade => grade;
+        public Transform ViewPoint => viewPoint;
 
         // ── Реализация IExhibit ─────────────────────────────────────────
 

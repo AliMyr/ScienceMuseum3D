@@ -222,16 +222,21 @@ namespace ScienceMuseum.Exhibits
             }
         }
 
-        
+
 
         public override void OnActivate()
         {
+            Debug.Log($"[Pendulum] OnActivate вызван");
+
             ProgressManager.Instance?.MarkExhibitStudied(ExhibitId);
 
             var studyPanel = FindObjectOfType<UI.ExhibitStudyPanel>(true);
+            Debug.Log($"[Pendulum] studyPanel найдена: {studyPanel != null}");
+
             if (studyPanel != null)
             {
                 studyPanel.Open(this);
+                Debug.Log($"[Pendulum] studyPanel.Open() вызван");
             }
             else
             {

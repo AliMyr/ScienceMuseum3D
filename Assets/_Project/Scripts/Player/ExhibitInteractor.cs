@@ -55,8 +55,13 @@ namespace ScienceMuseum.Player
 
         private void HandleInteraction()
         {
-            if (_currentExhibit == null) return;
+            if (Input.GetKeyDown(interactionKey))
+            {
+                Debug.Log($"[Interactor] E нажата. enabled={enabled}, " +
+                          $"_currentExhibit={(_currentExhibit != null ? _currentExhibit.Title : "NULL")}");
+            }
 
+            if (_currentExhibit == null) return;
             if (Input.GetKeyDown(interactionKey))
             {
                 _currentExhibit.OnActivate();
