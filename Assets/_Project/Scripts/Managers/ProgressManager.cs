@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace ScienceMuseum.Managers
@@ -10,23 +9,23 @@ namespace ScienceMuseum.Managers
         public static ProgressManager Instance { get; private set; }
 
         public event Action<string> OnChallengeCompleted;
-
         public event Action<string> OnExhibitStudied;
-
         public event Action OnProgressChanged;
 
-        private readonly HashSet<string> _completedChallenges = new HashSet<string>();
-        private readonly HashSet<string> _studiedExhibits = new HashSet<string>();
-
-        // Ключи для сохранения в PlayerPrefs
         private const string KeyChallenges = "progress.completed_challenges";
         private const string KeyExhibits = "progress.studied_exhibits";
         private const string Separator = ";";
 
+        private readonly HashSet<string> _completedChallenges = new HashSet<string>();
+        private readonly HashSet<string> _studiedExhibits = new HashSet<string>();
+
+        public int CompletedChallengesCount => _completedChallenges.Count;
+        public int StudiedExhibitsCount => _studiedExhibits.Count;
+        public IReadOnlyCollection<string> CompletedChallenges => _completedChallenges;
+        public IReadOnlyCollection<string> StudiedExhibits => _studiedExhibits;
 
         private void Awake()
         {
-            // Обеспечиваем единственность
             if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
@@ -41,14 +40,9 @@ namespace ScienceMuseum.Managers
         public void CompleteChallenge(string challengeId)
         {
             if (string.IsNullOrEmpty(challengeId)) return;
-            if (_completedChallenges.Contains(challengeId)) return;
+            if (!_completedChallenges.Add(challengeId)) return;
 
-            _completedChallenges.Add(challengeId);
             SaveProgress();
-
-            Debug.Log($"[ProgressManager] CompleteChallenge: {challengeId}. " +
-                      $"Subscribers: {OnChallengeCompleted?.GetInvocationList().Length ?? 0}");
-
             OnChallengeCompleted?.Invoke(challengeId);
             OnProgressChanged?.Invoke();
         }
@@ -56,30 +50,18 @@ namespace ScienceMuseum.Managers
         public void MarkExhibitStudied(string exhibitId)
         {
             if (string.IsNullOrEmpty(exhibitId)) return;
-            if (_studiedExhibits.Contains(exhibitId)) return;
+            if (!_studiedExhibits.Add(exhibitId)) return;
 
-            _studiedExhibits.Add(exhibitId);
             SaveProgress();
-
             OnExhibitStudied?.Invoke(exhibitId);
             OnProgressChanged?.Invoke();
         }
 
-        public bool IsChallengeCompleted(string challengeId)
-        {
-            return _completedChallenges.Contains(challengeId);
-        }
+        public bool IsChallengeCompleted(string challengeId) =>
+            _completedChallenges.Contains(challengeId);
 
-        public bool IsExhibitStudied(string exhibitId)
-        {
-            return _studiedExhibits.Contains(exhibitId);
-        }
-
-        public int CompletedChallengesCount => _completedChallenges.Count;
-        public int StudiedExhibitsCount => _studiedExhibits.Count;
-
-        public IReadOnlyCollection<string> CompletedChallenges => _completedChallenges;
-        public IReadOnlyCollection<string> StudiedExhibits => _studiedExhibits;
+        public bool IsExhibitStudied(string exhibitId) =>
+            _studiedExhibits.Contains(exhibitId);
 
         public void ResetAll()
         {
@@ -91,30 +73,19 @@ namespace ScienceMuseum.Managers
 
         private void LoadProgress()
         {
-            // Задания
-            string challengesStr = PlayerPrefs.GetString(KeyChallenges, "");
-            if (!string.IsNullOrEmpty(challengesStr))
-            {
-                foreach (var id in challengesStr.Split(Separator,
-                    StringSplitOptions.RemoveEmptyEntries))
-                {
-                    _completedChallenges.Add(id);
-                }
-            }
+            LoadSet(KeyChallenges, _completedChallenges);
+            LoadSet(KeyExhibits, _studiedExhibits);
+        }
 
-            // Экспонаты
-            string exhibitsStr = PlayerPrefs.GetString(KeyExhibits, "");
-            if (!string.IsNullOrEmpty(exhibitsStr))
-            {
-                foreach (var id in exhibitsStr.Split(Separator,
-                    StringSplitOptions.RemoveEmptyEntries))
-                {
-                    _studiedExhibits.Add(id);
-                }
-            }
+        private static void LoadSet(string key, HashSet<string> target)
+        {
+            string raw = PlayerPrefs.GetString(key, "");
+            if (string.IsNullOrEmpty(raw)) return;
 
-            Debug.Log($"[Progress] Загружено: {_completedChallenges.Count} заданий, " +
-                      $"{_studiedExhibits.Count} экспонатов");
+            foreach (var id in raw.Split(Separator, StringSplitOptions.RemoveEmptyEntries))
+            {
+                target.Add(id);
+            }
         }
 
         private void SaveProgress()
@@ -125,19 +96,6 @@ namespace ScienceMuseum.Managers
         }
 
         [ContextMenu("Reset All Progress")]
-        private void DebugResetAll()
-        {
-            ResetAll();
-            Debug.Log("[Progress] Весь прогресс сброшен.");
-        }
-
-        [ContextMenu("Print Status")]
-        private void DebugPrintStatus()
-        {
-            Debug.Log($"[Progress] Заданий: {_completedChallenges.Count} " +
-                      $"({string.Join(", ", _completedChallenges)})");
-            Debug.Log($"[Progress] Экспонатов: {_studiedExhibits.Count} " +
-                      $"({string.Join(", ", _studiedExhibits)})");
-        }
+        private void DebugResetAll() => ResetAll();
     }
 }
