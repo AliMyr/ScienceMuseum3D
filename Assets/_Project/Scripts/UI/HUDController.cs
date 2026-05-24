@@ -5,17 +5,19 @@ using ScienceMuseum.Player;
 
 namespace ScienceMuseum.UI
 {
+    /// <summary>
+    /// Подсказка «Нажми E, чтобы изучить ...» — показывается при наведении на экспонат.
+    /// </summary>
     public class HUDController : MonoBehaviour
     {
         [Header("Ссылки на UI")]
-        [Tooltip("Контейнер подсказки (GameObject с фоном и текстом)")]
+        [Tooltip("Контейнер подсказки (фон + текст)")]
         [SerializeField] private GameObject interactionHint;
 
         [Tooltip("Текстовое поле подсказки")]
         [SerializeField] private TextMeshProUGUI hintText;
 
         [Header("Ссылки на логику")]
-        [Tooltip("Компонент взаимодействия с экспонатами")]
         [SerializeField] private ExhibitInteractor interactor;
 
         [Header("Настройки")]
@@ -26,15 +28,8 @@ namespace ScienceMuseum.UI
 
         private void Awake()
         {
-            if (interactor == null)
-            {
-                interactor = FindObjectOfType<ExhibitInteractor>();
-            }
-
-            if (interactionHint != null)
-            {
-                interactionHint.SetActive(false);
-            }
+            if (interactor == null) interactor = FindObjectOfType<ExhibitInteractor>();
+            if (interactionHint != null) interactionHint.SetActive(false);
         }
 
         private void Update()
@@ -42,23 +37,18 @@ namespace ScienceMuseum.UI
             if (interactor == null || interactionHint == null) return;
 
             IExhibit current = interactor.CurrentExhibit;
+            if (current == _lastShownExhibit) return;
 
-            if (current != _lastShownExhibit)
+            _lastShownExhibit = current;
+
+            if (current != null)
             {
-                _lastShownExhibit = current;
-
-                if (current != null)
-                {
-                    if (hintText != null)
-                    {
-                        hintText.text = string.Format(hintTemplate, current.Title);
-                    }
-                    interactionHint.SetActive(true);
-                }
-                else
-                {
-                    interactionHint.SetActive(false);
-                }
+                if (hintText != null) hintText.text = string.Format(hintTemplate, current.Title);
+                interactionHint.SetActive(true);
+            }
+            else
+            {
+                interactionHint.SetActive(false);
             }
         }
     }

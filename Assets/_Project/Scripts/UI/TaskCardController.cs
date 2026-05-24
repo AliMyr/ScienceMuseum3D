@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -9,10 +10,10 @@ namespace ScienceMuseum.UI
     public class TaskCardController : MonoBehaviour
     {
         [Header("Текстовые поля")]
-        [SerializeField] private TextMeshProUGUI counterText;     // "Задание 2 из 4"
+        [SerializeField] private TextMeshProUGUI counterText;
         [SerializeField] private TextMeshProUGUI titleText;
         [SerializeField] private TextMeshProUGUI descriptionText;
-        [SerializeField] private TextMeshProUGUI progressInfoText; // "Сейчас: T = 1.85"
+        [SerializeField] private TextMeshProUGUI progressInfoText;
         [SerializeField] private TextMeshProUGUI feedbackText;
 
         [Header("Кнопки")]
@@ -42,11 +43,9 @@ namespace ScienceMuseum.UI
         [Tooltip("После скольких ошибок становится доступна кнопка «Показать решение»")]
         [SerializeField] private int failsBeforeSolution = 3;
 
-        // Состояние
+        private readonly List<Image> _dots = new List<Image>();
         private IChallenge[] _challenges;
         private int _currentIndex;
-        private readonly System.Collections.Generic.List<Image> _dots
-            = new System.Collections.Generic.List<Image>();
 
         private void Awake()
         {
@@ -67,11 +66,10 @@ namespace ScienceMuseum.UI
 
         private void Update()
         {
-            // Раз в кадр обновляем "сейчас" - подписи параметров меняются вместе со слайдерами
+            // Прогресс-инфо живёт от слайдеров, обновляем каждый кадр
             if (_challenges != null && _challenges.Length > 0 && progressInfoText != null)
             {
-                var current = _challenges[_currentIndex];
-                progressInfoText.text = current.GetProgressText();
+                progressInfoText.text = _challenges[_currentIndex].GetProgressText();
             }
         }
 
@@ -88,11 +86,9 @@ namespace ScienceMuseum.UI
             if (descriptionText != null) descriptionText.text = current.Description;
             if (progressInfoText != null) progressInfoText.text = current.GetProgressText();
 
-            // Кнопки навигации - выкл если не куда идти
             if (prevButton != null) prevButton.interactable = _currentIndex > 0;
             if (nextButton != null) nextButton.interactable = _currentIndex < _challenges.Length - 1;
 
-            // Сбрасываем feedback-блок и кнопки в зависимости от состояния
             UpdateFeedbackForCurrentState();
             UpdateDots();
         }
@@ -119,7 +115,6 @@ namespace ScienceMuseum.UI
                     break;
             }
 
-            // Кнопка решения доступна только если уже было N ошибок
             if (showSolutionButton != null)
             {
                 showSolutionButton.interactable = current.FailedAttempts >= failsBeforeSolution &&
@@ -166,9 +161,7 @@ namespace ScienceMuseum.UI
         private void OnShowSolutionClicked()
         {
             if (_challenges == null || _challenges.Length == 0) return;
-            var current = _challenges[_currentIndex];
-
-            SetFeedback(current.SolutionText, colorNeutral);
+            SetFeedback(_challenges[_currentIndex].SolutionText, colorNeutral);
         }
 
         private void GoPrev()
@@ -195,21 +188,19 @@ namespace ScienceMuseum.UI
             if (feedbackBackground != null) feedbackBackground.color = bgColor;
         }
 
-        // ── Точки прогресса ──────────────────────────────────────────────
-
         private void BuildDots()
         {
-            // Удаляем старые
             foreach (var d in _dots)
+            {
                 if (d != null) Destroy(d.gameObject);
+            }
             _dots.Clear();
 
             if (_challenges == null || dotsContainer == null || dotPrefab == null) return;
 
-            foreach (var ch in _challenges)
+            for (int i = 0; i < _challenges.Length; i++)
             {
-                Image dot = Instantiate(dotPrefab, dotsContainer);
-                _dots.Add(dot);
+                _dots.Add(Instantiate(dotPrefab, dotsContainer));
             }
 
             UpdateDots();

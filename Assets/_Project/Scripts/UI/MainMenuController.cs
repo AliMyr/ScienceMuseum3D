@@ -5,14 +5,12 @@ using UnityEngine.UI;
 namespace ScienceMuseum.UI
 {
     /// <summary>
-    /// Контроллер главного меню.
-    /// Управляет переходом в игровую сцену, сбросом прогресса,
-    /// выходом из приложения, показом информации о проекте.
+    /// Главное меню: начать игру, сбросить прогресс (с подтверждением),
+    /// показать «о проекте», выйти.
     /// </summary>
     public class MainMenuController : MonoBehaviour
     {
         [Header("Имя игровой сцены")]
-        [Tooltip("Имя сцены которая загружается при нажатии 'Начать'")]
         [SerializeField] private string gameSceneName = "MainHall";
 
         [Header("Главные кнопки меню")]
@@ -37,12 +35,10 @@ namespace ScienceMuseum.UI
 
         private void Awake()
         {
-            // Скрываем модальные панели по умолчанию
             if (aboutPanel != null) aboutPanel.SetActive(false);
             if (aboutDimmer != null) aboutDimmer.SetActive(false);
             if (confirmResetPanel != null) confirmResetPanel.SetActive(false);
 
-            // Привязываем кнопки
             if (startButton != null) startButton.onClick.AddListener(StartGame);
             if (resetButton != null) resetButton.onClick.AddListener(ShowResetConfirm);
             if (aboutButton != null) aboutButton.onClick.AddListener(ShowAbout);
@@ -52,27 +48,19 @@ namespace ScienceMuseum.UI
             if (confirmYesButton != null) confirmYesButton.onClick.AddListener(ConfirmResetProgress);
             if (confirmNoButton != null) confirmNoButton.onClick.AddListener(HideResetConfirm);
 
-            // В меню курсор виден и свободен
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
 
         private void Update()
         {
-            // Escape закрывает модальные панели
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                if (aboutPanel != null && aboutPanel.activeSelf) HideAbout();
-                else if (confirmResetPanel != null && confirmResetPanel.activeSelf)
-                    HideResetConfirm();
-            }
+            if (!Input.GetKeyDown(KeyCode.Escape)) return;
+
+            if (aboutPanel != null && aboutPanel.activeSelf) HideAbout();
+            else if (confirmResetPanel != null && confirmResetPanel.activeSelf) HideResetConfirm();
         }
 
-        private void StartGame()
-        {
-            // Проверяем что сцена есть в Build Settings
-            SceneManager.LoadScene(gameSceneName);
-        }
+        private void StartGame() => SceneManager.LoadScene(gameSceneName);
 
         private void ShowAbout()
         {
@@ -100,12 +88,9 @@ namespace ScienceMuseum.UI
 
         private void ConfirmResetProgress()
         {
-            // Удаляем сохранённый прогресс
             PlayerPrefs.DeleteKey(keyChallenges);
             PlayerPrefs.DeleteKey(keyExhibits);
             PlayerPrefs.Save();
-
-            Debug.Log("[Menu] Прогресс сброшен через главное меню");
 
             HideResetConfirm();
         }
@@ -113,10 +98,8 @@ namespace ScienceMuseum.UI
         private void QuitGame()
         {
 #if UNITY_EDITOR
-            // В редакторе - просто остановить Play
             UnityEditor.EditorApplication.isPlaying = false;
 #else
-            // В билде - закрыть приложение
             Application.Quit();
 #endif
         }

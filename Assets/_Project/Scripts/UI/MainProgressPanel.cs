@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 using ScienceMuseum.Core;
@@ -9,8 +10,8 @@ using ScienceMuseum.Player;
 namespace ScienceMuseum.UI
 {
     /// <summary>
-    /// Главная панель прогресса - оверлей на Tab.
-    /// Сканирует все IExhibit в сцене, создаёт карточки, обрабатывает телепортацию.
+    /// Главная панель прогресса — оверлей на Tab.
+    /// Сканирует все IExhibit в сцене, создаёт карточки, телепортирует к выбранному.
     /// </summary>
     public class MainProgressPanel : MonoBehaviour
     {
@@ -47,23 +48,21 @@ namespace ScienceMuseum.UI
         [SerializeField] private Button menuButton;
         [SerializeField] private string menuSceneName = "MainMenu";
 
-        // Динамически созданные карточки
         private readonly List<ExhibitCard> _cards = new List<ExhibitCard>();
+        private int _totalChallenges;
         private bool _isOpen;
 
         private void Awake()
         {
             if (panelRoot != null) panelRoot.SetActive(false);
 
-            if (closeButton != null)
-                closeButton.onClick.AddListener(Close);
+            if (closeButton != null) closeButton.onClick.AddListener(Close);
+            if (menuButton != null) menuButton.onClick.AddListener(GoToMainMenu);
 
             if (playerTransform == null && firstPersonController != null)
             {
                 playerTransform = firstPersonController.transform;
             }
-
-            if (menuButton != null) menuButton.onClick.AddListener(GoToMainMenu);
         }
 
         private void Start()
@@ -88,7 +87,6 @@ namespace ScienceMuseum.UI
 
         private void Update()
         {
-            // Tab/Escape переключают
             if (Input.GetKeyDown(toggleKey))
             {
                 if (_isOpen) Close();
@@ -102,16 +100,15 @@ namespace ScienceMuseum.UI
 
         private void BuildCards()
         {
-            // Удаляем старые
             foreach (var card in _cards)
             {
                 if (card != null) Destroy(card.gameObject);
             }
             _cards.Clear();
+            _totalChallenges = 0;
 
             if (cardsGrid == null || cardPrefab == null) return;
 
-            // Сканируем сцену на IExhibit
             var mbs = FindObjectsOfType<MonoBehaviour>(true);
             foreach (var mb in mbs)
             {
@@ -120,6 +117,7 @@ namespace ScienceMuseum.UI
                     ExhibitCard card = Instantiate(cardPrefab, cardsGrid);
                     card.Bind(exhibit, OnCardGoClicked);
                     _cards.Add(card);
+                    _totalChallenges += exhibit.Challenges?.Length ?? 0;
                 }
             }
         }
@@ -156,13 +154,11 @@ namespace ScienceMuseum.UI
 
         private void RefreshAll()
         {
-            // Обновляем все карточки
             foreach (var card in _cards)
             {
                 if (card != null) card.Refresh();
             }
 
-            // Обновляем общую статистику
             UpdateStats();
         }
 
@@ -170,47 +166,30 @@ namespace ScienceMuseum.UI
         {
             if (statsText == null || ProgressManager.Instance == null) return;
 
-            int totalExhibits = _cards.Count;
-            int totalChallenges = 0;
             int studiedExhibits = ProgressManager.Instance.StudiedExhibitsCount;
             int completedChallenges = ProgressManager.Instance.CompletedChallengesCount;
 
-            // Считаем общее число заданий
-            var mbs = FindObjectsOfType<MonoBehaviour>(true);
-            foreach (var mb in mbs)
-            {
-                if (mb is IExhibit exhibit && exhibit.Challenges != null)
-                {
-                    totalChallenges += exhibit.Challenges.Length;
-                }
-            }
-
             statsText.text =
-                $"Изучено экспонатов: {studiedExhibits} / {totalExhibits}    " +
-                $"Выполнено заданий: {completedChallenges} / {totalChallenges}";
+                $"Изучено экспонатов: {studiedExhibits} / {_cards.Count}    " +
+                $"Выполнено заданий: {completedChallenges} / {_totalChallenges}";
         }
 
-        /// <summary>
-        /// Обработчик клика "Перейти" - телепортирует игрока к экспонату.
-        /// </summary>
         private void OnCardGoClicked(IExhibit exhibit)
         {
             if (exhibit == null || exhibit.ViewPoint == null || playerTransform == null)
             {
-                Debug.LogWarning("[MainPanel] Не задана точка обзора у экспоната или игрока");
                 Close();
                 return;
             }
 
-            // CharacterController блокирует прямое изменение position.
-            // Временно отключаем его на момент телепортации.
+            // CharacterController блокирует прямое изменение position
             var characterController = playerTransform.GetComponent<CharacterController>();
             if (characterController != null) characterController.enabled = false;
 
             playerTransform.position = exhibit.ViewPoint.position;
             playerTransform.rotation = exhibit.ViewPoint.rotation;
 
-            var fpsController = playerTransform.GetComponent<ScienceMuseum.Player.FirstPersonController>();
+            var fpsController = playerTransform.GetComponent<FirstPersonController>();
             if (fpsController != null) fpsController.ResetVerticalRotation();
 
             if (characterController != null) characterController.enabled = true;
@@ -218,9 +197,6 @@ namespace ScienceMuseum.UI
             Close();
         }
 
-        private void GoToMainMenu()
-        {
-            UnityEngine.SceneManagement.SceneManager.LoadScene(menuSceneName);
-        }
+        private void GoToMainMenu() => SceneManager.LoadScene(menuSceneName);
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -7,9 +8,8 @@ using ScienceMuseum.Managers;
 namespace ScienceMuseum.UI
 {
     /// <summary>
-    /// Одна карточка экспоната в главной панели.
-    /// Привязывается к IExhibit через Bind() и сама обновляет своё состояние.
-    /// При клике на "Перейти" вызывает callback переданный извне.
+    /// Карточка экспоната в главной панели. Привязывается к IExhibit через Bind()
+    /// и обновляет своё состояние сама. По клику «Перейти» вызывает callback.
     /// </summary>
     public class ExhibitCard : MonoBehaviour
     {
@@ -26,9 +26,9 @@ namespace ScienceMuseum.UI
         [SerializeField] private Color colorComplete = new Color(0.18f, 0.42f, 0.30f);
 
         private IExhibit _exhibit;
-        private System.Action<IExhibit> _onGoClicked;
+        private Action<IExhibit> _onGoClicked;
 
-        public void Bind(IExhibit exhibit, System.Action<IExhibit> onGoClicked)
+        public void Bind(IExhibit exhibit, Action<IExhibit> onGoClicked)
         {
             _exhibit = exhibit;
             _onGoClicked = onGoClicked;
@@ -49,7 +49,6 @@ namespace ScienceMuseum.UI
         {
             if (_exhibit == null) return;
 
-            // Прогресс заданий
             int total = _exhibit.Challenges?.Length ?? 0;
             int completed = 0;
             if (_exhibit.Challenges != null && ProgressManager.Instance != null)
@@ -63,7 +62,6 @@ namespace ScienceMuseum.UI
             if (progressText != null)
                 progressText.text = $"Заданий: {completed} / {total}";
 
-            // Статус изучения
             bool studied = ProgressManager.Instance != null &&
                            ProgressManager.Instance.IsExhibitStudied(_exhibit.ExhibitId);
             bool allCompleted = total > 0 && completed >= total;
@@ -87,7 +85,6 @@ namespace ScienceMuseum.UI
                 }
             }
 
-            // Цвет фона карточки
             if (cardBackground != null)
             {
                 cardBackground.color = allCompleted ? colorComplete :

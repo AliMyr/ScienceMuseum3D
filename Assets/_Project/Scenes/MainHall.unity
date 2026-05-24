@@ -8824,8 +8824,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ScienceMuseum.UI.ProgressBarHUD
   challengesCountText: {fileID: 1442750871}
   exhibitsCountText: {fileID: 1155729813}
-  totalChallenges: 0
-  totalExhibits: 0
 --- !u!1 &900593155
 GameObject:
   m_ObjectHideFlags: 0
@@ -9935,6 +9933,7 @@ MonoBehaviour:
   coilCount: 15
   pointsPerCoil: 12
   coilRadius: 0.08
+  subSteps: 4
 --- !u!1 &1004078535
 GameObject:
   m_ObjectHideFlags: 0
@@ -15973,6 +15972,7 @@ MonoBehaviour:
   rotatingPart: {fileID: 182336419}
   stringTransform: {fileID: 535375855}
   bobTransform: {fileID: 1847922221}
+  subSteps: 4
 --- !u!1 &1652502345
 GameObject:
   m_ObjectHideFlags: 0

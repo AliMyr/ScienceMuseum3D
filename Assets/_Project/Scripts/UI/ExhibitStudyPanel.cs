@@ -6,6 +6,10 @@ using ScienceMuseum.Core;
 
 namespace ScienceMuseum.UI
 {
+    /// <summary>
+    /// Панель изучения экспоната: параметры, формулы, задачи.
+    /// Открывается интерактором по нажатию E на экспонате.
+    /// </summary>
     public class ExhibitStudyPanel : MonoBehaviour
     {
         [Header("Ссылки на UI")]
@@ -30,51 +34,41 @@ namespace ScienceMuseum.UI
         [SerializeField] private MonoBehaviour exhibitInteractor;
         [SerializeField] private GameObject hudRoot;
 
-        // Текущий экспонат
+        private readonly List<ParameterSliderRow> _sliderRows = new List<ParameterSliderRow>();
         private IExhibit _currentExhibit;
         private bool _isOpen;
-
-        // Динамически созданные UI элементы
-        private readonly List<ParameterSliderRow> _sliderRows = new List<ParameterSliderRow>();
 
         private void Awake()
         {
             if (panelRoot != null) panelRoot.SetActive(false);
 
-            if (resetButton != null)
-                resetButton.onClick.AddListener(OnResetClicked);
-            if (closeButton != null)
-                closeButton.onClick.AddListener(Close);
+            if (resetButton != null) resetButton.onClick.AddListener(OnResetClicked);
+            if (closeButton != null) closeButton.onClick.AddListener(Close);
         }
 
         private void Update()
         {
-            if (_isOpen && Input.GetKeyDown(KeyCode.Escape))
+            if (!_isOpen) return;
+
+            if (Input.GetKeyDown(KeyCode.Escape))
             {
-                Debug.Log("[StudyPanel] Escape нажат, закрываю");
                 Close();
+                return;
             }
 
-            if (_isOpen)
+            if (formulaText != null && _currentExhibit != null)
             {
-                if (formulaText != null && _currentExhibit != null)
-                {
-                    formulaText.text = _currentExhibit.GetFormulaText();
-                }
+                formulaText.text = _currentExhibit.GetFormulaText();
+            }
 
-                foreach (var row in _sliderRows)
-                {
-                    if (row != null) row.UpdateLabel();
-                }
-
+            foreach (var row in _sliderRows)
+            {
+                if (row != null) row.UpdateLabel();
             }
         }
 
         public void Open(IExhibit exhibit)
         {
-            Debug.Log($"[StudyPanel] Open вызван для {exhibit?.Title ?? "NULL"}. " +
-                      $"panelRoot активен: {(panelRoot != null ? panelRoot.activeSelf.ToString() : "panelRoot=NULL")}");
-
             if (exhibit == null) return;
 
             _currentExhibit = exhibit;
@@ -94,15 +88,10 @@ namespace ScienceMuseum.UI
 
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
-
-            Debug.Log($"[StudyPanel] Open завершён. panelRoot активен: " +
-                      $"{(panelRoot != null ? panelRoot.activeSelf.ToString() : "NULL")}");
         }
 
         public void Close()
         {
-            Debug.Log($"[StudyPanel] Close вызван. _isOpen={_isOpen}");
-
             _isOpen = false;
             _currentExhibit = null;
 
@@ -114,8 +103,6 @@ namespace ScienceMuseum.UI
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
-
-        // ── Динамическое построение UI ────────────────────────────────────
 
         private void BuildParameters(ExhibitParameter[] parameters)
         {
@@ -136,11 +123,6 @@ namespace ScienceMuseum.UI
             }
         }
 
-        
-
-        private void OnResetClicked()
-        {
-            _currentExhibit?.ResetSimulation();
-        }
+        private void OnResetClicked() => _currentExhibit?.ResetSimulation();
     }
 }

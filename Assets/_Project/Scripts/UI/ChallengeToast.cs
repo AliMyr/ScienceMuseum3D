@@ -1,12 +1,16 @@
-using ScienceMuseum.Core;
-using ScienceMuseum.Managers;
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
+using TMPro;
+using ScienceMuseum.Core;
+using ScienceMuseum.Managers;
 
 namespace ScienceMuseum.UI
 {
+    /// <summary>
+    /// Всплывающее уведомление при выполнении задачи.
+    /// Кеширует заголовки задач при старте, показывает их по событию.
+    /// </summary>
     public class ChallengeToast : MonoBehaviour
     {
         [SerializeField] private TextMeshProUGUI toastText;
@@ -16,19 +20,13 @@ namespace ScienceMuseum.UI
         [SerializeField] private float visibleDuration = 2.5f;
         [SerializeField] private float fadeDuration = 0.4f;
 
+        private readonly Dictionary<string, string> _challengeTitles = new Dictionary<string, string>();
         private Coroutine _activeToast;
-        private Dictionary<string, string> _challengeTitles;
 
         private void Awake()
         {
-            if (canvasGroup == null)
-            {
-                canvasGroup = GetComponent<CanvasGroup>();
-            }
-            if (canvasGroup == null)
-            {
-                canvasGroup = gameObject.AddComponent<CanvasGroup>();
-            }
+            if (canvasGroup == null) canvasGroup = GetComponent<CanvasGroup>();
+            if (canvasGroup == null) canvasGroup = gameObject.AddComponent<CanvasGroup>();
 
             canvasGroup.alpha = 0f;
             canvasGroup.blocksRaycasts = false;
@@ -42,11 +40,6 @@ namespace ScienceMuseum.UI
             if (ProgressManager.Instance != null)
             {
                 ProgressManager.Instance.OnChallengeCompleted += OnChallengeCompleted;
-                Debug.Log($"[ChallengeToast] Подписка на ProgressManager. Заголовков в кеше: {_challengeTitles.Count}");
-            }
-            else
-            {
-                Debug.LogError("[ChallengeToast] ProgressManager.Instance == null!");
             }
         }
 
@@ -60,7 +53,6 @@ namespace ScienceMuseum.UI
 
         private void CacheChallengeTitles()
         {
-            _challengeTitles = new Dictionary<string, string>();
             var mbs = FindObjectsOfType<MonoBehaviour>(true);
             foreach (var mb in mbs)
             {
@@ -77,8 +69,6 @@ namespace ScienceMuseum.UI
 
         private void OnChallengeCompleted(string challengeId)
         {
-            Debug.Log($"[ChallengeToast] Получено событие: {challengeId}");
-
             string title = _challengeTitles.TryGetValue(challengeId, out var t)
                 ? t
                 : challengeId;
@@ -88,18 +78,11 @@ namespace ScienceMuseum.UI
 
         public void ShowToast(string message)
         {
-            if (toastText == null || canvasGroup == null)
-            {
-                Debug.LogWarning("[ChallengeToast] toastText или canvasGroup не назначены!");
-                return;
-            }
+            if (toastText == null || canvasGroup == null) return;
 
             toastText.text = message;
 
-            if (_activeToast != null)
-            {
-                StopCoroutine(_activeToast);
-            }
+            if (_activeToast != null) StopCoroutine(_activeToast);
             _activeToast = StartCoroutine(ToastRoutine());
         }
 

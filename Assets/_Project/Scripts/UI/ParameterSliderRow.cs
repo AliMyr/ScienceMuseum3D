@@ -5,6 +5,10 @@ using ScienceMuseum.Core;
 
 namespace ScienceMuseum.UI
 {
+    /// <summary>
+    /// Строка параметра: подпись + слайдер. Синхронизирует слайдер и метку
+    /// с актуальным значением ExhibitParameter.
+    /// </summary>
     public class ParameterSliderRow : MonoBehaviour
     {
         [SerializeField] private TextMeshProUGUI label;
@@ -22,7 +26,6 @@ namespace ScienceMuseum.UI
                 slider.maxValue = parameter.MaxValue;
                 slider.SetValueWithoutNotify(parameter.Getter());
 
-                // Удаляем старые слушатели если префаб переиспользуется
                 slider.onValueChanged.RemoveAllListeners();
                 slider.onValueChanged.AddListener(OnSliderChanged);
             }
