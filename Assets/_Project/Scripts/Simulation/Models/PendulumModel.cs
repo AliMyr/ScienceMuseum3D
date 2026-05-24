@@ -3,16 +3,18 @@ using ScienceMuseum.Simulation.Solvers;
 
 namespace ScienceMuseum.Simulation.Models
 {
+    /// <summary>
+    /// Математический маятник: θ'' = -(g/L)·sin(θ) - k·θ'.
+    /// Состояние: [θ, ω].
+    /// </summary>
     public class PendulumModel
     {
-        // Параметры модели (можно менять в рантайме)
-        public double Length { get; set; } = 1.0;        // длина нити, м
-        public double Gravity { get; set; } = 9.81;      // ускорение свободного падения, м/с²
-        public double Damping { get; set; } = 0.0;       // коэффициент трения (0 - нет)
+        public double Length { get; set; } = 1.0;
+        public double Gravity { get; set; } = 9.81;
+        public double Damping { get; set; } = 0.0;
 
-        // Текущее состояние
-        public double Angle { get; private set; }        // θ, радианы
-        public double AngularVelocity { get; private set; } // ω = dθ/dt
+        public double Angle { get; private set; }
+        public double AngularVelocity { get; private set; }
 
         private readonly IOdeSolver _solver;
         private double _time;
@@ -31,10 +33,7 @@ namespace ScienceMuseum.Simulation.Models
 
         public void Step(double dt)
         {
-            // Текущее состояние в виде массива (для интерфейса IOdeSolver)
             double[] state = { Angle, AngularVelocity };
-
-            // Один шаг методом Рунге-Кутты
             double[] newState = _solver.Step(state, Derivatives, _time, dt);
 
             Angle = newState[0];
@@ -53,10 +52,7 @@ namespace ScienceMuseum.Simulation.Models
             return new double[] { dTheta, dOmega };
         }
 
-        public double TheoreticalPeriod()
-        {
-            return 2.0 * Math.PI * Math.Sqrt(Length / Gravity);
-        }
+        public double TheoreticalPeriod() => 2.0 * Math.PI * Math.Sqrt(Length / Gravity);
 
         public double Energy()
         {

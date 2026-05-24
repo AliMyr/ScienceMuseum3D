@@ -4,17 +4,14 @@ using ScienceMuseum.Simulation.Solvers;
 namespace ScienceMuseum.Simulation.Models
 {
     /// <summary>
-    /// Модель движения планеты в гравитационном поле центрального тела.
-    /// Состояние: [x, y, vx, vy] - позиция и скорость в плоскости.
-    /// Уравнения:  d²x/dt² = -μ·x/r³,  d²y/dt² = -μ·y/r³,  где μ = G·M.
-    /// Центральное тело (Солнце) считается неподвижным в начале координат.
+    /// Движение тела в гравитационном поле неподвижного центра.
+    /// x'' = -μ·x/r³,  y'' = -μ·y/r³,  где μ = G·M, r = √(x² + y²).
+    /// Состояние: [x, y, vx, vy].
     /// </summary>
     public class OrbitModel
     {
-        // Параметр: гравитационный параметр центрального тела (G·M)
         public double Mu { get; set; } = 100.0;
 
-        // Текущее состояние
         public double X { get; private set; }
         public double Y { get; private set; }
         public double Vx { get; private set; }
@@ -29,15 +26,14 @@ namespace ScienceMuseum.Simulation.Models
         }
 
         /// <summary>
-        /// Установить начальные условия.
-        /// Удобно задавать через начальный радиус и скорость по касательной (перпендикулярно радиусу).
+        /// Начальные условия через радиус и тангенциальную скорость.
         /// </summary>
         public void Reset(double initialRadius, double tangentialSpeed)
         {
             X = initialRadius;
             Y = 0;
             Vx = 0;
-            Vy = tangentialSpeed;  // движение по касательной (перпендикулярно радиус-вектору)
+            Vy = tangentialSpeed;
             _time = 0;
         }
 
@@ -61,9 +57,7 @@ namespace ScienceMuseum.Simulation.Models
 
             double r2 = x * x + y * y;
             double r = Math.Sqrt(r2);
-
-            // Защита от деления на 0 (если планета попала в центр)
-            if (r < 1e-6) r = 1e-6;
+            if (r < 1e-6) r = 1e-6; // защита от деления на ноль при попадании в центр
 
             double r3 = r2 * r;
             double ax = -Mu * x / r3;
@@ -72,31 +66,17 @@ namespace ScienceMuseum.Simulation.Models
             return new double[] { vx, vy, ax, ay };
         }
 
-        // ── Производные характеристики ─────────────────────────────────────
-
-        /// <summary>Текущее расстояние до центра.</summary>
         public double Radius => Math.Sqrt(X * X + Y * Y);
-
-        /// <summary>Текущая скорость (модуль).</summary>
         public double Speed => Math.Sqrt(Vx * Vx + Vy * Vy);
 
         /// <summary>
-        /// Полная механическая энергия (на единицу массы).
-        /// Должна сохраняться при отсутствии диссипации - тест точности RK4.
+        /// Полная механическая энергия на единицу массы.
+        /// При отсутствии диссипации должна сохраняться — индикатор точности.
         /// </summary>
-        public double SpecificEnergy
-        {
-            get
-            {
-                double r = Radius;
-                double v2 = Vx * Vx + Vy * Vy;
-                return 0.5 * v2 - Mu / r;
-            }
-        }
+        public double SpecificEnergy => 0.5 * (Vx * Vx + Vy * Vy) - Mu / Radius;
 
         /// <summary>
-        /// Тип орбиты по полной энергии.
-        /// E < 0 - связанная (эллипс), E = 0 - параболическая, E > 0 - гипербола.
+        /// Тип орбиты по знаку полной энергии.
         /// </summary>
         public string OrbitType
         {
@@ -109,14 +89,7 @@ namespace ScienceMuseum.Simulation.Models
             }
         }
 
-        /// <summary>
-        /// Первая космическая скорость для текущего радиуса (для круговой орбиты).
-        /// </summary>
         public double FirstCosmicSpeed(double radius) => Math.Sqrt(Mu / radius);
-
-        /// <summary>
-        /// Вторая космическая скорость для текущего радиуса (для отрыва).
-        /// </summary>
         public double SecondCosmicSpeed(double radius) => Math.Sqrt(2.0 * Mu / radius);
     }
 }

@@ -3,17 +3,20 @@ using ScienceMuseum.Simulation.Solvers;
 
 namespace ScienceMuseum.Simulation.Models
 {
+    /// <summary>
+    /// Линейный осциллятор с диссипацией: m·x'' + c·x' + k·x = m·g.
+    /// Состояние: [x, v], где x отсчитывается от естественной длины пружины
+    /// (положение равновесия: x_eq = m·g / k).
+    /// </summary>
     public class SpringOscillatorModel
     {
-        // Параметры
-        public double Mass { get; set; } = 1.0;        // масса груза, кг
-        public double Stiffness { get; set; } = 50.0;  // k, Н/м
-        public double Damping { get; set; } = 0.0;     // c, Н·с/м (вязкое трение)
-        public double Gravity { get; set; } = 9.81;    // g, м/с²
+        public double Mass { get; set; } = 1.0;
+        public double Stiffness { get; set; } = 50.0;
+        public double Damping { get; set; } = 0.0;
+        public double Gravity { get; set; } = 9.81;
 
-        // Состояние
-        public double Position { get; private set; }   // x, м (вниз от естественной длины)
-        public double Velocity { get; private set; }   // v, м/с
+        public double Position { get; private set; }
+        public double Velocity { get; private set; }
 
         private readonly IOdeSolver _solver;
         private double _time;
@@ -26,11 +29,7 @@ namespace ScienceMuseum.Simulation.Models
         public void Reset(double initialDisplacementFromEquilibrium,
                           double initialVelocity = 0.0)
         {
-            // Положение равновесия под силой тяжести: x_eq = m·g / k
-            double equilibrium = Mass * Gravity / Stiffness;
-
-            // Стартовая позиция относительно естественной длины
-            Position = equilibrium + initialDisplacementFromEquilibrium;
+            Position = EquilibriumPosition() + initialDisplacementFromEquilibrium;
             Velocity = initialVelocity;
             _time = 0.0;
         }
@@ -54,25 +53,10 @@ namespace ScienceMuseum.Simulation.Models
             return new double[] { dx, dv };
         }
 
-        public double TheoreticalPeriod()
-        {
-            return 2.0 * Math.PI * Math.Sqrt(Mass / Stiffness);
-        }
-
-        public double TheoreticalFrequency()
-        {
-            return 1.0 / TheoreticalPeriod();
-        }
-
-        public double EquilibriumPosition()
-        {
-            return Mass * Gravity / Stiffness;
-        }
-
-        public double DisplacementFromEquilibrium()
-        {
-            return Position - EquilibriumPosition();
-        }
+        public double TheoreticalPeriod() => 2.0 * Math.PI * Math.Sqrt(Mass / Stiffness);
+        public double TheoreticalFrequency() => 1.0 / TheoreticalPeriod();
+        public double EquilibriumPosition() => Mass * Gravity / Stiffness;
+        public double DisplacementFromEquilibrium() => Position - EquilibriumPosition();
 
         public double Energy()
         {

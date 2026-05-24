@@ -4,29 +4,19 @@ using ScienceMuseum.Simulation.Solvers;
 namespace ScienceMuseum.Simulation.Models
 {
     /// <summary>
-    /// Двойной математический маятник — две точечные массы на невесомых стержнях,
-    /// соединённых шарниром. Классический пример детерминированного хаоса в механике.
-    ///
-    /// Состояние: [theta1, theta2, omega1, omega2]
-    ///   theta1 — угол верхнего звена от вертикали (0 = висит вниз)
-    ///   theta2 — угол нижнего звена от вертикали
-    ///   omega1, omega2 — угловые скорости
-    ///
-    /// Уравнения движения получены из лагранжиана и приведены к стандартной форме
-    /// d/dt(omega) = ... (см. учебники по аналитической механике).
+    /// Двойной маятник: две точечные массы на невесомых стержнях, соединённых шарниром.
+    /// Классический пример детерминированного хаоса в механике.
+    /// Состояние: [theta1, theta2, omega1, omega2].
+    /// Уравнения движения получены из лагранжиана (стандартная форма).
     /// </summary>
     public class DoublePendulumModel
     {
-        // ── Параметры (можно менять в рантайме) ─────────────────────────────
-
-        public double Length1 { get; set; } = 1.0;     // длина верхнего стержня, м
-        public double Length2 { get; set; } = 1.0;     // длина нижнего стержня, м
-        public double Mass1 { get; set; } = 1.0;       // масса верхнего груза, кг
-        public double Mass2 { get; set; } = 1.0;       // масса нижнего груза, кг
-        public double Gravity { get; set; } = 9.81;    // ускорение свободного падения, м/с²
-        public double Damping { get; set; } = 0.0;     // коэффициент вязкого трения
-
-        // ── Состояние ───────────────────────────────────────────────────────
+        public double Length1 { get; set; } = 1.0;
+        public double Length2 { get; set; } = 1.0;
+        public double Mass1 { get; set; } = 1.0;
+        public double Mass2 { get; set; } = 1.0;
+        public double Gravity { get; set; } = 9.81;
+        public double Damping { get; set; } = 0.0;
 
         public double Theta1 { get; private set; }
         public double Theta2 { get; private set; }
@@ -34,8 +24,8 @@ namespace ScienceMuseum.Simulation.Models
         public double Omega2 { get; private set; }
 
         /// <summary>
-        /// Максимальное значение |theta2|, наблюдавшееся с момента последнего Reset.
-        /// Понадобится для задачи «полный кувырок нижнего груза».
+        /// Максимальное наблюдённое |theta2| с момента последнего Reset.
+        /// Используется для задачи «полный кувырок нижнего груза».
         /// </summary>
         public double MaxObservedTheta2Magnitude { get; private set; }
 
@@ -95,31 +85,28 @@ namespace ScienceMuseum.Simulation.Models
             double sinDelta = Math.Sin(delta);
             double cosDelta = Math.Cos(delta);
 
-            // Общий знаменатель уравнений (физически никогда не обращается в ноль)
+            // Общий знаменатель уравнений; физически не обращается в ноль
             double denom = 2.0 * m1 + m2 - m2 * Math.Cos(2.0 * delta);
 
-            // d(omega1)/dt
             double num1 =
                 -g * (2.0 * m1 + m2) * Math.Sin(th1)
                 - m2 * g * Math.Sin(th1 - 2.0 * th2)
                 - 2.0 * sinDelta * m2 * (w2 * w2 * L2 + w1 * w1 * L1 * cosDelta);
             double dOmega1 = num1 / (L1 * denom) - Damping * w1;
 
-            // d(omega2)/dt
             double num2 =
                 2.0 * sinDelta * (w1 * w1 * L1 * (m1 + m2)
                                   + g * (m1 + m2) * Math.Cos(th1)
                                   + w2 * w2 * L2 * m2 * cosDelta);
             double dOmega2 = num2 / (L2 * denom) - Damping * w2;
 
-            // d(theta)/dt = omega
             return new double[] { w1, w2, dOmega1, dOmega2 };
         }
 
         /// <summary>
         /// Полная механическая энергия (кинетическая + потенциальная).
-        /// При damping = 0 должна сохраняться — индикатор корректности интегратора.
-        /// Потенциальная отсчитывается от нижнего положения покоя (минимум = 0).
+        /// При damping=0 должна сохраняться — индикатор корректности интегратора.
+        /// Потенциальная отсчитывается от нижнего положения покоя.
         /// </summary>
         public double Energy()
         {
@@ -135,7 +122,6 @@ namespace ScienceMuseum.Simulation.Models
                              + 2.0 * L1 * L2 * Omega1 * Omega2 * Math.Cos(Theta1 - Theta2);
 
             double kinetic = 0.5 * m1 * v1Squared + 0.5 * m2 * v2Squared;
-
             double potential = (m1 + m2) * g * L1 * (1.0 - Math.Cos(Theta1))
                              + m2 * g * L2 * (1.0 - Math.Cos(Theta2));
 
@@ -143,9 +129,7 @@ namespace ScienceMuseum.Simulation.Models
         }
 
         /// <summary>
-        /// Относительный дрейф энергии относительно начальной. При корректном
-        /// интегрировании без диссипации должен быть малым (порядка 1e-3 на длинных
-        /// интервалах для RK4 с разумным шагом).
+        /// Относительный дрейф энергии. Для RK4 без диссипации мал (~1e-3 на длинных интервалах).
         /// </summary>
         public double EnergyDriftRelative
         {

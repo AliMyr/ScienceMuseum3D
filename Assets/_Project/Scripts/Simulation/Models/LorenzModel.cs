@@ -1,24 +1,20 @@
-using System;
 using ScienceMuseum.Simulation.Solvers;
 
 namespace ScienceMuseum.Simulation.Models
 {
     /// <summary>
-    /// Аттрактор Лоренца - детерминированная хаотическая система.
-    /// Описывается тремя ОДУ:
-    ///   dx/dt = sigma·(y - x)
-    ///   dy/dt = x·(rho - z) - y
-    ///   dz/dt = x·y - beta·z
-    /// Состояние: [x, y, z] - координаты точки в 3D.
+    /// Система Лоренца — детерминированная хаотическая система:
+    ///   dx/dt = σ·(y - x)
+    ///   dy/dt = x·(ρ - z) - y
+    ///   dz/dt = x·y - β·z
+    /// При классических параметрах (σ=10, ρ=28, β=8/3) даёт «бабочку».
     /// </summary>
     public class LorenzModel
     {
-        // Параметры (классические значения дают "бабочку")
         public double Sigma { get; set; } = 10.0;
         public double Rho { get; set; } = 28.0;
         public double Beta { get; set; } = 8.0 / 3.0;
 
-        // Состояние
         public double X { get; private set; }
         public double Y { get; private set; }
         public double Z { get; private set; }
@@ -63,10 +59,7 @@ namespace ScienceMuseum.Simulation.Models
         }
 
         /// <summary>
-        /// Тип аттрактора в зависимости от параметра rho.
-        /// При rho < 1 - точка приходит в равновесие (0,0,0).
-        /// При 1 < rho < ~24.7 - две стабильные точки равновесия.
-        /// При rho > 24.7 - хаотический режим (бабочка Лоренца).
+        /// Тип аттрактора по параметру ρ.
         /// </summary>
         public string AttractorType
         {
