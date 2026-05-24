@@ -5,7 +5,7 @@ using ScienceMuseum.Exhibits;
 namespace ScienceMuseum.Simulation.Challenges
 {
     /// <summary>
-    /// Задание "круговая орбита" - подобрать первую космическую скорость.
+    /// Подобрать первую космическую скорость для круговой орбиты.
     /// </summary>
     public class CircularOrbitChallenge : CheckedChallengeBase
     {
@@ -26,17 +26,13 @@ namespace ScienceMuseum.Simulation.Challenges
                 $"Значит v1 ≈ {exhibit.FirstCosmicAtInit:F2} ед/с.";
         }
 
-        protected override bool EvaluateInternal()
-        {
-            float diff = Mathf.Abs(_exhibit.InitialSpeed - _exhibit.FirstCosmicAtInit);
-            return diff <= Tolerance;
-        }
+        protected override bool EvaluateInternal() =>
+            Mathf.Abs(_exhibit.InitialSpeed - _exhibit.FirstCosmicAtInit) <= Tolerance;
 
         public override string GetProgressText()
         {
             float target = _exhibit.FirstCosmicAtInit;
-            return $"v0 сейчас: {_exhibit.InitialSpeed:F2}    " +
-                   $"v1 (целевая): {target:F2}";
+            return $"v0 сейчас: {_exhibit.InitialSpeed:F2}    v1 (целевая): {target:F2}";
         }
 
         public override string SolutionText
@@ -60,7 +56,7 @@ namespace ScienceMuseum.Simulation.Challenges
     }
 
     /// <summary>
-    /// Задание "эллиптическая орбита".
+    /// Получить эллиптическую орбиту: скорость между круговой и отрыва.
     /// </summary>
     public class EllipticalOrbitChallenge : CheckedChallengeBase
     {
@@ -82,15 +78,12 @@ namespace ScienceMuseum.Simulation.Challenges
         protected override bool EvaluateInternal()
         {
             float v = _exhibit.InitialSpeed;
-            float v1 = _exhibit.FirstCosmicAtInit;
-            float v2 = _exhibit.SecondCosmicAtInit;
-            return v > v1 + 0.5f && v < v2 - 0.3f;
+            return v > _exhibit.FirstCosmicAtInit + 0.5f
+                && v < _exhibit.SecondCosmicAtInit - 0.3f;
         }
 
-        public override string GetProgressText()
-        {
-            return $"v0 сейчас: {_exhibit.InitialSpeed:F2}    Тип: {_exhibit.CurrentOrbitType}";
-        }
+        public override string GetProgressText() =>
+            $"v0 сейчас: {_exhibit.InitialSpeed:F2}    Тип: {_exhibit.CurrentOrbitType}";
 
         public override string SolutionText
         {
@@ -111,7 +104,7 @@ namespace ScienceMuseum.Simulation.Challenges
     }
 
     /// <summary>
-    /// Задание "вторая космическая".
+    /// Достичь второй космической: преодолеть гравитацию и улететь.
     /// </summary>
     public class EscapeVelocityChallenge : CheckedChallengeBase
     {
@@ -130,18 +123,11 @@ namespace ScienceMuseum.Simulation.Challenges
                 $"{exhibit.SecondCosmicAtInit:F2}. Установи v0 хотя бы на 0.5 больше.";
         }
 
-        protected override bool EvaluateInternal()
-        {
-            float v = _exhibit.InitialSpeed;
-            float v2 = _exhibit.SecondCosmicAtInit;
-            return v >= v2 + 0.3f;
-        }
+        protected override bool EvaluateInternal() =>
+            _exhibit.InitialSpeed >= _exhibit.SecondCosmicAtInit + 0.3f;
 
-        public override string GetProgressText()
-        {
-            return $"v0 сейчас: {_exhibit.InitialSpeed:F2}    " +
-                   $"v2 (нужно ≥): {_exhibit.SecondCosmicAtInit:F2}";
-        }
+        public override string GetProgressText() =>
+            $"v0 сейчас: {_exhibit.InitialSpeed:F2}    v2 (нужно ≥): {_exhibit.SecondCosmicAtInit:F2}";
 
         public override string SolutionText
         {

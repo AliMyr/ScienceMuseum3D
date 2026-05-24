@@ -22,31 +22,25 @@ namespace ScienceMuseum.Simulation.Challenges
 
         public bool CheckAnswer()
         {
-            // Однажды выполненное задание не "разрешается" обратно
             if (Status == ChallengeStatus.Completed) return true;
 
-            bool correct = EvaluateInternal();
-
-            if (correct)
+            if (EvaluateInternal())
             {
                 Status = ChallengeStatus.Completed;
                 return true;
             }
-            else
-            {
-                Status = ChallengeStatus.Failed;
-                FailedAttempts++;
-                return false;
-            }
+
+            Status = ChallengeStatus.Failed;
+            FailedAttempts++;
+            return false;
         }
 
         protected abstract bool EvaluateInternal();
-
         public abstract string GetProgressText();
     }
 
     /// <summary>
-    /// Задание "подобрать период Т, равный целевому".
+    /// Подобрать длину и гравитацию так, чтобы период совпал с целевым.
     /// </summary>
     public class TargetPeriodChallenge : CheckedChallengeBase
     {
@@ -106,7 +100,7 @@ namespace ScienceMuseum.Simulation.Challenges
     }
 
     /// <summary>
-    /// Задание "настроить на указанную планетарную гравитацию".
+    /// Установить гравитацию, совпадающую с указанным небесным телом.
     /// </summary>
     public class MatchGravityChallenge : CheckedChallengeBase
     {
@@ -130,15 +124,11 @@ namespace ScienceMuseum.Simulation.Challenges
                    $"{targetGravity:F2} м/с². Двигай слайдер «Гравитация».";
         }
 
-        protected override bool EvaluateInternal()
-        {
-            return Mathf.Abs(_exhibit.Gravity - _targetGravity) <= _tolerance;
-        }
+        protected override bool EvaluateInternal() =>
+            Mathf.Abs(_exhibit.Gravity - _targetGravity) <= _tolerance;
 
-        public override string GetProgressText()
-        {
-            return $"Сейчас: g = {_exhibit.Gravity:F2} м/с²    Цель: {_targetGravity:F2} м/с²";
-        }
+        public override string GetProgressText() =>
+            $"Сейчас: g = {_exhibit.Gravity:F2} м/с²    Цель: {_targetGravity:F2} м/с²";
 
         public override string SolutionText =>
             $"<b>Решение:</b>\n" +

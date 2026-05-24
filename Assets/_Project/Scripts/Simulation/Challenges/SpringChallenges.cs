@@ -5,7 +5,7 @@ using ScienceMuseum.Exhibits;
 namespace ScienceMuseum.Simulation.Challenges
 {
     /// <summary>
-    /// Подобрать период колебаний груза на пружине.
+    /// Подобрать массу и жёсткость пружины так, чтобы период совпал с целевым.
     /// </summary>
     public class SpringTargetPeriodChallenge : CheckedChallengeBase
     {
@@ -63,7 +63,7 @@ namespace ScienceMuseum.Simulation.Challenges
     }
 
     /// <summary>
-    /// Установить тяжёлый груз и проверить.
+    /// Тяжёлый груз: наглядно показать, что период растёт как √m.
     /// </summary>
     public class HeavyMassChallenge : CheckedChallengeBase
     {
@@ -83,15 +83,11 @@ namespace ScienceMuseum.Simulation.Challenges
 
         protected override bool EvaluateInternal()
         {
-            bool massOk = _exhibit.Mass >= 4.0f;
-            bool stiffOk = Mathf.Abs(_exhibit.Stiffness - 50f) < 3f;
-            return massOk && stiffOk;
+            return _exhibit.Mass >= 4.0f && Mathf.Abs(_exhibit.Stiffness - 50f) < 3f;
         }
 
-        public override string GetProgressText()
-        {
-            return $"Сейчас: m = {_exhibit.Mass:F2} кг    k = {_exhibit.Stiffness:F1} Н/м";
-        }
+        public override string GetProgressText() =>
+            $"Сейчас: m = {_exhibit.Mass:F2} кг    k = {_exhibit.Stiffness:F1} Н/м";
 
         public override string SolutionText =>
             "<b>Решение:</b>\n" +
@@ -101,7 +97,7 @@ namespace ScienceMuseum.Simulation.Challenges
     }
 
     /// <summary>
-    /// Включить демпфирование, увидеть затухание.
+    /// Включить демпфирование, увидеть затухание амплитуды.
     /// </summary>
     public class ShowDampingChallenge : CheckedChallengeBase
     {
@@ -118,15 +114,10 @@ namespace ScienceMuseum.Simulation.Challenges
             Hint = "Двигай слайдер «Трение c» к значению больше 1.0.";
         }
 
-        protected override bool EvaluateInternal()
-        {
-            return _exhibit.Damping >= 1.0f;
-        }
+        protected override bool EvaluateInternal() => _exhibit.Damping >= 1.0f;
 
-        public override string GetProgressText()
-        {
-            return $"Сейчас: трение c = {_exhibit.Damping:F2}    Цель: ≥ 1.0";
-        }
+        public override string GetProgressText() =>
+            $"Сейчас: трение c = {_exhibit.Damping:F2}    Цель: ≥ 1.0";
 
         public override string SolutionText =>
             "<b>Решение:</b>\n" +

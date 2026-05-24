@@ -5,10 +5,7 @@ using ScienceMuseum.Exhibits;
 namespace ScienceMuseum.Simulation.Challenges
 {
     /// <summary>
-    /// Задание: установить симметричную конфигурацию (L1 = L2, m1 = m2).
-    /// Демонстрирует понятие нормальных мод — в симметричной системе при одинаковых
-    /// начальных углах звенья колеблются как единое тело, при противоположных —
-    /// в противофазе с другой частотой. Любое движение разлагается на эти две моды.
+    /// Симметричная конфигурация (L1 = L2, m1 = m2) — демонстрирует нормальные моды.
     /// </summary>
     public class SymmetricConfigurationChallenge : CheckedChallengeBase
     {
@@ -54,10 +51,7 @@ namespace ScienceMuseum.Simulation.Challenges
     }
 
     /// <summary>
-    /// Задание: получить квазипериодическое поведение при малых углах.
-    /// Демонстрирует природу хаоса — он следствие нелинейности sin(θ).
-    /// При малых θ разложение sin(θ) ≈ θ делает уравнения линейными, и система
-    /// сводится к двум связанным гармоническим осцилляторам без хаоса.
+    /// Малые углы: при малых θ нелинейность sin(θ) пренебрежима, хаоса нет.
     /// </summary>
     public class SmallAnglesChallenge : CheckedChallengeBase
     {
@@ -87,13 +81,11 @@ namespace ScienceMuseum.Simulation.Challenges
                 && _exhibit.Damping <= MaxAllowedDamping;
         }
 
-        public override string GetProgressText()
-        {
-            return $"|θ1| = {Mathf.Abs(_exhibit.Theta1InitialDegrees):F0}°    " +
-                   $"|θ2| = {Mathf.Abs(_exhibit.Theta2InitialDegrees):F0}°    " +
-                   $"k = {_exhibit.Damping:F3}    " +
-                   $"Цель: оба угла ≤ {MaxAllowedAngleDegrees:F0}°, k ≈ 0";
-        }
+        public override string GetProgressText() =>
+            $"|θ1| = {Mathf.Abs(_exhibit.Theta1InitialDegrees):F0}°    " +
+            $"|θ2| = {Mathf.Abs(_exhibit.Theta2InitialDegrees):F0}°    " +
+            $"k = {_exhibit.Damping:F3}    " +
+            $"Цель: оба угла ≤ {MaxAllowedAngleDegrees:F0}°, k ≈ 0";
 
         public override string SolutionText =>
             "<b>Решение:</b>\n" +
@@ -109,9 +101,7 @@ namespace ScienceMuseum.Simulation.Challenges
     }
 
     /// <summary>
-    /// Задание: добиться полного оборота нижнего груза (|θ2| > π).
-    /// Демонстрирует энергетический порог переворота и эффект перекачки энергии
-    /// между звеньями через нелинейную связь.
+    /// Полный кувырок нижнего груза: |θ2| > π хотя бы раз.
     /// </summary>
     public class FullFlipChallenge : CheckedChallengeBase
     {
@@ -135,10 +125,8 @@ namespace ScienceMuseum.Simulation.Challenges
                 "размахивает нижним.";
         }
 
-        protected override bool EvaluateInternal()
-        {
-            return _exhibit.MaxTheta2Observed > Mathf.PI;
-        }
+        protected override bool EvaluateInternal() =>
+            _exhibit.MaxTheta2Observed > Mathf.PI;
 
         public override string GetProgressText()
         {

@@ -5,7 +5,7 @@ using ScienceMuseum.Exhibits;
 namespace ScienceMuseum.Simulation.Challenges
 {
     /// <summary>
-    /// Установить классические параметры аттрактора Лоренца.
+    /// Установить классические параметры аттрактора Лоренца (σ=10, ρ=28, β=8/3).
     /// </summary>
     public class ClassicLorenzChallenge : CheckedChallengeBase
     {
@@ -26,17 +26,14 @@ namespace ScienceMuseum.Simulation.Challenges
 
         protected override bool EvaluateInternal()
         {
-            bool sigmaOk = Mathf.Abs(_exhibit.Sigma - 10f) < 0.5f;
-            bool rhoOk = Mathf.Abs(_exhibit.Rho - 28f) < 0.5f;
-            bool betaOk = Mathf.Abs(_exhibit.Beta - 8f / 3f) < 0.1f;
-            return sigmaOk && rhoOk && betaOk;
+            return Mathf.Abs(_exhibit.Sigma - 10f) < 0.5f
+                && Mathf.Abs(_exhibit.Rho - 28f) < 0.5f
+                && Mathf.Abs(_exhibit.Beta - 8f / 3f) < 0.1f;
         }
 
-        public override string GetProgressText()
-        {
-            return $"Сейчас: sigma={_exhibit.Sigma:F2}, rho={_exhibit.Rho:F2}, beta={_exhibit.Beta:F3}\n" +
-                   "Цель: sigma=10.00, rho=28.00, beta≈2.67";
-        }
+        public override string GetProgressText() =>
+            $"Сейчас: sigma={_exhibit.Sigma:F2}, rho={_exhibit.Rho:F2}, beta={_exhibit.Beta:F3}\n" +
+            "Цель: sigma=10.00, rho=28.00, beta≈2.67";
 
         public override string SolutionText =>
             "<b>Решение:</b>\n" +
@@ -50,7 +47,7 @@ namespace ScienceMuseum.Simulation.Challenges
     }
 
     /// <summary>
-    /// Перевести систему в режим стабильного равновесия (без хаоса).
+    /// Перевести систему в режим точки покоя (rho < 1).
     /// </summary>
     public class StablePointChallenge : CheckedChallengeBase
     {
@@ -69,15 +66,10 @@ namespace ScienceMuseum.Simulation.Challenges
                 "После этого нажми «Сбросить» внизу панели и наблюдай — точка должна замереть.";
         }
 
-        protected override bool EvaluateInternal()
-        {
-            return _exhibit.Rho < 1.0f;
-        }
+        protected override bool EvaluateInternal() => _exhibit.Rho < 1.0f;
 
-        public override string GetProgressText()
-        {
-            return $"Сейчас: rho = {_exhibit.Rho:F2}\nЦель: rho < 1.0";
-        }
+        public override string GetProgressText() =>
+            $"Сейчас: rho = {_exhibit.Rho:F2}\nЦель: rho < 1.0";
 
         public override string SolutionText =>
             "<b>Решение:</b>\n" +
@@ -89,7 +81,7 @@ namespace ScienceMuseum.Simulation.Challenges
     }
 
     /// <summary>
-    /// "Эффект бабочки" - сильно изменить rho чтобы получить разные траектории.
+    /// Войти в хаотический режим (rho > 25): «эффект бабочки».
     /// </summary>
     public class ButterflyEffectChallenge : CheckedChallengeBase
     {
@@ -107,15 +99,10 @@ namespace ScienceMuseum.Simulation.Challenges
                 "После «Сбросить» наблюдай как формируется бабочка.";
         }
 
-        protected override bool EvaluateInternal()
-        {
-            return _exhibit.Rho > 25f;
-        }
+        protected override bool EvaluateInternal() => _exhibit.Rho > 25f;
 
-        public override string GetProgressText()
-        {
-            return $"Сейчас: rho = {_exhibit.Rho:F2}\nЦель: rho > 25";
-        }
+        public override string GetProgressText() =>
+            $"Сейчас: rho = {_exhibit.Rho:F2}\nЦель: rho > 25";
 
         public override string SolutionText =>
             "<b>Решение:</b>\n" +
