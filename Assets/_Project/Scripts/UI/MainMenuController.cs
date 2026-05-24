@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using ScienceMuseum.Managers;
 
 namespace ScienceMuseum.UI
 {
@@ -88,9 +89,16 @@ namespace ScienceMuseum.UI
 
         private void ConfirmResetProgress()
         {
-            PlayerPrefs.DeleteKey(keyChallenges);
-            PlayerPrefs.DeleteKey(keyExhibits);
-            PlayerPrefs.Save();
+            if (ProgressManager.Instance != null)
+            {
+                ProgressManager.Instance.ResetAll();
+            }
+            else
+            {
+                PlayerPrefs.DeleteKey(keyChallenges);
+                PlayerPrefs.DeleteKey(keyExhibits);
+                PlayerPrefs.Save();
+            }
 
             HideResetConfirm();
         }
