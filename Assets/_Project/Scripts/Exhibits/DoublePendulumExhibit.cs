@@ -1,86 +1,48 @@
 using UnityEngine;
 using ScienceMuseum.Core;
 using ScienceMuseum.Simulation.Models;
-using ScienceMuseum.Managers;
 using ScienceMuseum.Simulation.Challenges;
 
 namespace ScienceMuseum.Exhibits
 {
-    /// <summary>
-    /// Экспонат «Двойной маятник» — механическая иллюстрация детерминированного хаоса.
-    /// При больших начальных углах траектория полностью предсказуема, но крайне
-    /// чувствительна к начальным условиям — «эффект бабочки в железе».
-    ///
-    /// Ожидаемая иерархия Transform:
-    ///   PivotPoint                                — точка подвеса, статична
-    ///     Arm1                  ← arm1Transform   — поворачивается на theta1
-    ///       Rod1Visual          ← rod1Transform   — стержень (масштабируется по L1)
-    ///       Bob1Visual          ← bob1Transform   — декоративный груз (позиция по L1)
-    ///       Arm2                ← arm2Transform   — поворачивается на (theta2 − theta1)
-    ///         Rod2Visual        ← rod2Transform
-    ///         Bob2Visual        ← bob2Transform   — груз с TrailRenderer
-    /// </summary>
     public class DoublePendulumExhibit : ExhibitBase
     {
-        // ── Параметры верхнего звена ───────────────────────────────────────
-
         [Header("Верхнее звено")]
         [Range(0.3f, 1.5f)][SerializeField] private float length1 = 1.0f;
         [Range(0.5f, 3.0f)][SerializeField] private float mass1 = 1.0f;
 
-        // ── Параметры нижнего звена ────────────────────────────────────────
-
         [Header("Нижнее звено")]
         [Range(0.3f, 1.5f)][SerializeField] private float length2 = 1.0f;
         [Range(0.5f, 3.0f)][SerializeField] private float mass2 = 1.0f;
-
-        // ── Среда ──────────────────────────────────────────────────────────
 
         [Header("Среда")]
         [Range(1f, 25f)][SerializeField] private float gravity = 9.81f;
         [Tooltip("0 = энергия сохраняется")]
         [Range(0f, 1f)][SerializeField] private float damping = 0.0f;
 
-        // ── Начальные условия ──────────────────────────────────────────────
-
         [Header("Начальные условия")]
         [Range(-180f, 180f)][SerializeField] private float theta1InitialDegrees = 120f;
         [Range(-180f, 180f)][SerializeField] private float theta2InitialDegrees = 90f;
 
-        // ── Визуал — верхнее звено ─────────────────────────────────────────
-
         [Header("Визуал — верхнее звено")]
-        [Tooltip("Поворачивается вокруг точки подвеса")]
         [SerializeField] private Transform arm1Transform;
-        [Tooltip("Стержень 1 (масштабируется по длине)")]
         [SerializeField] private Transform rod1Transform;
-        [Tooltip("Декоративный груз 1 (на конце стержня 1)")]
         [SerializeField] private Transform bob1Transform;
 
-        // ── Визуал — нижнее звено ──────────────────────────────────────────
-
         [Header("Визуал — нижнее звено")]
-        [Tooltip("Должен быть ребёнком arm1 (на одном уровне с bob1Visual). " +
-                 "Сидит в позиции (0, -length1, 0).")]
+        [Tooltip("Должен быть ребёнком arm1 (на одном уровне с bob1Visual)")]
         [SerializeField] private Transform arm2Transform;
         [SerializeField] private Transform rod2Transform;
         [SerializeField] private Transform bob2Transform;
-
-        // ── След ───────────────────────────────────────────────────────────
 
         [Header("След")]
         [Tooltip("Trail Renderer на bob2 — рисует «кружева» двойного маятника")]
         [SerializeField] private TrailRenderer bob2Trail;
 
-        // ── Симуляция ──────────────────────────────────────────────────────
-
         [Header("Симуляция")]
-        [Tooltip("Подшаги численного интегрирования. Двойной маятник численно жёстче " +
-                 "обычного — рекомендуется 8 и больше для стабильности при больших углах.")]
+        [Tooltip("Двойной маятник численно жёстче обычного — 8+ для стабильности")]
         [Range(2, 32)][SerializeField] private int subSteps = 8;
         [Range(0.1f, 3f)][SerializeField] private float timeScale = 1.0f;
-
-        // ── Внутреннее состояние ───────────────────────────────────────────
 
         private DoublePendulumModel _model;
         private ExhibitParameter[] _parameters;
@@ -88,8 +50,6 @@ namespace ScienceMuseum.Exhibits
 
         public override ExhibitParameter[] Parameters => _parameters;
         public override IChallenge[] Challenges => _challenges;
-
-        // ── Публичные геттеры/сеттеры (для UI и задач) ─────────────────────
 
         public float Length1
         {
@@ -169,8 +129,6 @@ namespace ScienceMuseum.Exhibits
         public double CurrentEnergyDrift => _model?.EnergyDriftRelative ?? 0.0;
         public double MaxTheta2Observed => _model?.MaxObservedTheta2Magnitude ?? 0.0;
 
-        // ── Жизненный цикл ─────────────────────────────────────────────────
-
         protected override void Awake()
         {
             base.Awake();
@@ -240,9 +198,8 @@ namespace ScienceMuseum.Exhibits
 
             if (arm2Transform != null)
             {
-                // arm2 — потомок arm1 (на одном уровне с bob1Visual). Его локальный
-                // поворот отчитывается от уже повёрнутой системы координат arm1.
-                // Чтобы абсолютный (мировой) угол был theta2, локально нужен theta2 − theta1.
+                // arm2 — потомок arm1. Чтобы абсолютный угол был theta2,
+                // локально нужен theta2 − theta1.
                 float relativeDeg = (float)((_model.Theta2 - _model.Theta1) * Mathf.Rad2Deg);
                 arm2Transform.localRotation = Quaternion.Euler(0f, 0f, relativeDeg);
             }
@@ -250,7 +207,6 @@ namespace ScienceMuseum.Exhibits
 
         private void UpdateVisualScaling()
         {
-            // Стержень верхнего звена
             if (rod1Transform != null)
             {
                 Vector3 s = rod1Transform.localScale;
@@ -262,7 +218,6 @@ namespace ScienceMuseum.Exhibits
                 rod1Transform.localPosition = p;
             }
 
-            // Bob1 — декоративный груз на конце стержня 1
             if (bob1Transform != null)
             {
                 Vector3 p = bob1Transform.localPosition;
@@ -270,9 +225,6 @@ namespace ScienceMuseum.Exhibits
                 bob1Transform.localPosition = p;
             }
 
-            // Arm2 — точка подвеса нижнего звена. Сидит в той же точке, что и Bob1,
-            // но вне его иерархии масштабирования. При повороте Arm1 движется вместе
-            // с ним, а при изменении длины L1 — синхронно сдвигается вниз.
             if (arm2Transform != null)
             {
                 Vector3 p = arm2Transform.localPosition;
@@ -280,7 +232,6 @@ namespace ScienceMuseum.Exhibits
                 arm2Transform.localPosition = p;
             }
 
-            // Стержень нижнего звена (в локальной системе arm2)
             if (rod2Transform != null)
             {
                 Vector3 s = rod2Transform.localScale;
@@ -292,7 +243,6 @@ namespace ScienceMuseum.Exhibits
                 rod2Transform.localPosition = p;
             }
 
-            // Bob2 — груз на конце нижнего стержня
             if (bob2Transform != null)
             {
                 Vector3 p = bob2Transform.localPosition;
@@ -320,10 +270,7 @@ namespace ScienceMuseum.Exhibits
             UpdateVisualScaling();
             UpdateVisualRotation();
 
-            if (bob2Trail != null)
-            {
-                bob2Trail.Clear();
-            }
+            if (bob2Trail != null) bob2Trail.Clear();
         }
 
         private void OnValidate()
@@ -337,17 +284,6 @@ namespace ScienceMuseum.Exhibits
                 _model.Gravity = gravity;
                 _model.Damping = damping;
                 UpdateVisualScaling();
-            }
-        }
-
-        public override void OnActivate()
-        {
-            ProgressManager.Instance?.MarkExhibitStudied(ExhibitId);
-
-            var studyPanel = FindObjectOfType<UI.ExhibitStudyPanel>(true);
-            if (studyPanel != null)
-            {
-                studyPanel.Open(this);
             }
         }
 

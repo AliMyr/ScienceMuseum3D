@@ -2,14 +2,9 @@ using UnityEngine;
 using ScienceMuseum.Core;
 using ScienceMuseum.Simulation.Models;
 using ScienceMuseum.Simulation.Challenges;
-using ScienceMuseum.Managers;
 
 namespace ScienceMuseum.Exhibits
 {
-    /// <summary>
-    /// Экспонат "Аттрактор Лоренца" - детерминированный хаос в 3D.
-    /// Точка движется по уравнениям Лоренца, оставляя след-бабочку.
-    /// </summary>
     public class LorenzExhibit : ExhibitBase
     {
         [Header("Параметры системы Лоренца")]
@@ -42,24 +37,20 @@ namespace ScienceMuseum.Exhibits
         [Range(0.005f, 0.05f)]
         [SerializeField] private float visualScale = 0.025f;
 
-        [Tooltip("Сколько физических подшагов на кадр")]
+        [Header("Симуляция")]
         [Range(1, 20)]
         [SerializeField] private int subSteps = 6;
 
-        [Tooltip("Ускорение симуляции (1 = реальное время)")]
         [Range(0.5f, 5f)]
         [SerializeField] private float timeScale = 1.5f;
 
-        // Физическая модель
         private LorenzModel _model;
-
-        // Параметры и задания
         private ExhibitParameter[] _parameters;
         private IChallenge[] _challenges;
+
         public override ExhibitParameter[] Parameters => _parameters;
         public override IChallenge[] Challenges => _challenges;
 
-        // Публичные свойства
         public float Sigma
         {
             get => sigma;
@@ -105,21 +96,12 @@ namespace ScienceMuseum.Exhibits
 
             _parameters = new[]
             {
-                new ExhibitParameter(
-                    "Сигма (sigma)", "", 0.1f, 30f,
-                    () => sigma,
-                    v => Sigma = v,
-                    decimals: 2),
-                new ExhibitParameter(
-                    "Ро (rho)", "", 0.1f, 50f,
-                    () => rho,
-                    v => Rho = v,
-                    decimals: 2),
-                new ExhibitParameter(
-                    "Бета (beta)", "", 0.1f, 10f,
-                    () => beta,
-                    v => Beta = v,
-                    decimals: 3),
+                new ExhibitParameter("Сигма (sigma)", "", 0.1f, 30f,
+                    () => sigma, v => Sigma = v, decimals: 2),
+                new ExhibitParameter("Ро (rho)", "", 0.1f, 50f,
+                    () => rho, v => Rho = v, decimals: 2),
+                new ExhibitParameter("Бета (beta)", "", 0.1f, 10f,
+                    () => beta, v => Beta = v, decimals: 3),
             };
 
             _challenges = new IChallenge[]
@@ -151,13 +133,11 @@ namespace ScienceMuseum.Exhibits
         {
             if (particleTransform == null || glassBoxTransform == null) return;
 
-            // Координаты Лоренца типично в диапазоне -25..25 для x, y; 0..50 для z.
-            // Сдвигаем z вниз чтобы аттрактор был по центру куба.
+            // z из модели — вертикальная ось сцены, со сдвигом на середину куба
             float x = (float)_model.X * visualScale;
-            float y = ((float)_model.Z - 25f) * visualScale; // z из модели в y сцены, со сдвигом
+            float y = ((float)_model.Z - 25f) * visualScale;
             float z = (float)_model.Y * visualScale;
 
-            // Локальная позиция относительно куба
             particleTransform.position = glassBoxTransform.position + new Vector3(x, y, z);
         }
 
@@ -169,10 +149,7 @@ namespace ScienceMuseum.Exhibits
             _model.Beta = beta;
             _model.Reset(x0, y0, z0);
 
-            if (particleTrail != null)
-            {
-                particleTrail.Clear();
-            }
+            if (particleTrail != null) particleTrail.Clear();
         }
 
         private void OnValidate()
@@ -199,17 +176,6 @@ namespace ScienceMuseum.Exhibits
                 $"<b>Режим:</b>  <color=#FFD700>{CurrentAttractorType}</color>\n\n" +
                 "<i>Простые уравнения дают сложное поведение. " +
                 "Это и есть детерминированный хаос — главное открытие XX века в динамике систем.</i>";
-        }
-
-        public override void OnActivate()
-        {
-            ProgressManager.Instance?.MarkExhibitStudied(ExhibitId);
-
-            var studyPanel = FindObjectOfType<UI.ExhibitStudyPanel>(true);
-            if (studyPanel != null)
-            {
-                studyPanel.Open(this);
-            }
         }
     }
 }

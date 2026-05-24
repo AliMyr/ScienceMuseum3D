@@ -2,20 +2,13 @@ using UnityEngine;
 using ScienceMuseum.Core;
 using ScienceMuseum.Simulation.Models;
 using ScienceMuseum.Simulation.Challenges;
-using ScienceMuseum.Managers;
 
 namespace ScienceMuseum.Exhibits
 {
     public class PendulumExhibit : ExhibitBase
     {
-        private IChallenge[] _challenges;
-        public override IChallenge[] Challenges => _challenges;
-        public override ExhibitParameter[] Parameters => _parameters;
-
-        private ExhibitParameter[] _parameters;
-
         [Header("Параметры маятника")]
-        [Tooltip("Длина нити (метры). ВАЖНО: визуал в сцене должен совпадать.")]
+        [Tooltip("Длина нити (метры)")]
         [Range(0.3f, 2.5f)]
         [SerializeField] private float length = 1.0f;
 
@@ -23,32 +16,34 @@ namespace ScienceMuseum.Exhibits
         [Range(1f, 25f)]
         [SerializeField] private float gravity = 9.81f;
 
-        [Tooltip("Коэффициент трения (0 = нет, маятник качается вечно)")]
+        [Tooltip("Коэффициент трения (0 = маятник качается вечно)")]
         [Range(0f, 2f)]
         [SerializeField] private float damping = 0.0f;
 
         [Header("Начальные условия")]
-        [Tooltip("Начальный угол отклонения (градусы)")]
         [Range(-170f, 170f)]
         [SerializeField] private float initialAngleDegrees = 30f;
 
         [Header("Визуал")]
-        [Tooltip("Объект, который будет поворачиваться (StringAndBob)")]
+        [Tooltip("Объект, который поворачивается")]
         [SerializeField] private Transform rotatingPart;
 
-        [Tooltip("Трансформ нити (чтобы растягивать/сжимать при изменении длины)")]
+        [Tooltip("Нить (растягивается/сжимается по длине)")]
         [SerializeField] private Transform stringTransform;
 
-        [Tooltip("Трансформ груза (для смещения по длине нити)")]
+        [Tooltip("Груз (смещается по длине нити)")]
         [SerializeField] private Transform bobTransform;
 
-        // Физическая модель
+        [Header("Симуляция")]
+        [Range(1, 16)]
+        [SerializeField] private int subSteps = 4;
+
         private PendulumModel _model;
+        private ExhibitParameter[] _parameters;
+        private IChallenge[] _challenges;
 
-        // Флаг - запущена ли симуляция
-        private bool _isRunning = false;
-
-        // ── Публичные свойства для UI-панели ─────────────────────────────────
+        public override ExhibitParameter[] Parameters => _parameters;
+        public override IChallenge[] Challenges => _challenges;
 
         public float Length
         {
@@ -98,13 +93,10 @@ namespace ScienceMuseum.Exhibits
                 Damping = damping
             };
 
-            // Создаём задания для этого экспоната
             _challenges = new IChallenge[]
             {
-                new TargetPeriodChallenge("pendulum.period_2sec", this,
-                    targetPeriod: 2.0f, tolerance: 0.05f),
-                new TargetPeriodChallenge("pendulum.period_1sec", this,
-                    targetPeriod: 1.0f, tolerance: 0.05f,
+                new TargetPeriodChallenge("pendulum.period_2sec", this, 2.0f, 0.05f),
+                new TargetPeriodChallenge("pendulum.period_1sec", this, 1.0f, 0.05f,
                     title: "Быстрый маятник",
                     description: "Сделай так, чтобы маятник совершал одно колебание за 1 секунду."),
                 new MatchGravityChallenge("pendulum.gravity_moon", this, 1.62f, "Луне"),
@@ -113,53 +105,29 @@ namespace ScienceMuseum.Exhibits
 
             _parameters = new[]
             {
-                new ExhibitParameter(
-                    "Длина нити L", "м", 0.3f, 2.5f,
-                    () => length,
-                    v => Length = v,
-                    decimals: 2),
-                new ExhibitParameter(
-                    "Гравитация g", "м/с²", 1f, 25f,
-                    () => gravity,
-                    v => Gravity = v,
-                    decimals: 2),
-                new ExhibitParameter(
-                    "Трение k", "", 0f, 2f,
-                    () => damping,
-                    v => Damping = v,
-                    decimals: 2),
-                new ExhibitParameter(
-                    "Начальный угол θ", "°", -170f, 170f,
-                    () => initialAngleDegrees,
-                    v => InitialAngleDegrees = v,
-                    decimals: 0),
+                new ExhibitParameter("Длина нити L", "м", 0.3f, 2.5f,
+                    () => length, v => Length = v, decimals: 2),
+                new ExhibitParameter("Гравитация g", "м/с²", 1f, 25f,
+                    () => gravity, v => Gravity = v, decimals: 2),
+                new ExhibitParameter("Трение k", "", 0f, 2f,
+                    () => damping, v => Damping = v, decimals: 2),
+                new ExhibitParameter("Начальный угол θ", "°", -170f, 170f,
+                    () => initialAngleDegrees, v => InitialAngleDegrees = v, decimals: 0),
             };
 
             ResetSimulation();
         }
 
-        private void Start()
-        {
-            // Запускаем симуляцию сразу - маятник качается независимо от взаимодействия.
-            // Даже проходя мимо, игрок видит живую физику - это привлекает внимание.
-            _isRunning = true;
-        }
-
         private void Update()
         {
-            if (!_isRunning) return;
+            if (_model == null) return;
 
-            // Шаг симуляции с фиксированным малым шагом dt.
-            // Делаем несколько подшагов на кадр - для стабильности при низком FPS.
-            int subSteps = 4;
             double dt = Time.deltaTime / subSteps;
-
             for (int i = 0; i < subSteps; i++)
             {
                 _model.Step(dt);
             }
 
-            // Применяем угол к визуалу
             UpdateVisual();
         }
 
@@ -167,10 +135,7 @@ namespace ScienceMuseum.Exhibits
         {
             if (rotatingPart != null)
             {
-                // Угол из модели (радианы) в градусы
                 float angleDeg = (float)(_model.Angle * Mathf.Rad2Deg);
-
-                // Поворачиваем вокруг Z (ось, перпендикулярная плоскости качания)
                 rotatingPart.localRotation = Quaternion.Euler(0, 0, angleDeg);
             }
 
@@ -182,10 +147,9 @@ namespace ScienceMuseum.Exhibits
             if (stringTransform != null)
             {
                 Vector3 s = stringTransform.localScale;
-                s.y = 0.5f * length;  // стандартная шкала 0.5 соответствует длине 1м
+                s.y = 0.5f * length;
                 stringTransform.localScale = s;
 
-                // Центр нити - посередине её длины, то есть на -length/2 от точки подвеса
                 Vector3 p = stringTransform.localPosition;
                 p.y = -length / 2f;
                 stringTransform.localPosition = p;
@@ -194,7 +158,7 @@ namespace ScienceMuseum.Exhibits
             if (bobTransform != null)
             {
                 Vector3 p = bobTransform.localPosition;
-                p.y = -length;  // груз на конце нити
+                p.y = -length;
                 bobTransform.localPosition = p;
             }
         }
@@ -222,38 +186,14 @@ namespace ScienceMuseum.Exhibits
             }
         }
 
-
-
-        public override void OnActivate()
-        {
-            Debug.Log($"[Pendulum] OnActivate вызван");
-
-            ProgressManager.Instance?.MarkExhibitStudied(ExhibitId);
-
-            var studyPanel = FindObjectOfType<UI.ExhibitStudyPanel>(true);
-            Debug.Log($"[Pendulum] studyPanel найдена: {studyPanel != null}");
-
-            if (studyPanel != null)
-            {
-                studyPanel.Open(this);
-                Debug.Log($"[Pendulum] studyPanel.Open() вызван");
-            }
-            else
-            {
-                Debug.LogWarning("[Pendulum] ExhibitStudyPanel не найдена!");
-            }
-        }
-
         public override string GetFormulaText()
         {
-            float L = length;
-            float g = gravity;
-            float period = 2f * Mathf.PI * Mathf.Sqrt(L / g);
+            float period = 2f * Mathf.PI * Mathf.Sqrt(length / gravity);
             float frequency = 1f / period;
 
             return
                 "<b>Формула периода малых колебаний:</b>\n" +
-                $"  T = 2π·√(L/g) = 2π·√({L:F2}/{g:F2})\n" +
+                $"  T = 2π·√(L/g) = 2π·√({length:F2}/{gravity:F2})\n" +
                 $"  T = <color=#FFD700>{period:F3} с</color>\n\n" +
                 $"<b>Частота:</b>  f = 1/T = <color=#FFD700>{frequency:F3} Гц</color>\n\n" +
                 "<i>Формула работает для малых углов (до ~15°). " +

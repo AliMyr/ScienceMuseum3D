@@ -1,11 +1,12 @@
 using UnityEngine;
+using ScienceMuseum.Managers;
+using ScienceMuseum.UI;
 
 namespace ScienceMuseum.Core
 {
     /// <summary>
-    /// Базовый класс для всех экспонатов музея.
-    /// Реализует общую логику: подсветка при наведении, хранение метаданных,
-    /// пустые реализации параметров и заданий (наследники переопределяют).
+    /// База для всех экспонатов: подсветка при наведении, метаданные,
+    /// активация (отметить как изученный + открыть панель изучения).
     /// </summary>
     public abstract class ExhibitBase : MonoBehaviour, IExhibit
     {
@@ -38,35 +39,36 @@ namespace ScienceMuseum.Core
         [Tooltip("Школьный класс, например '9 класс'")]
         [SerializeField] protected string grade = "Класс";
 
-        [Tooltip("Точка телепортации игрока к этому экспонату. Создай пустой " +
-                 "GameObject рядом с пьедесталом и назначь его сюда.")]
+        [Tooltip("Точка телепортации игрока к этому экспонату")]
         [SerializeField] protected Transform viewPoint;
 
-        // Оригинальные материалы (чтобы восстановить при OnFocusExit)
         private Material[] _originalMaterials;
         private Material[] _highlightedMaterials;
         private bool _isHighlighted;
-        public virtual string Topic => topic;
-        public virtual string Grade => grade;
-        public Transform ViewPoint => viewPoint;
-
-        // ── Реализация IExhibit ─────────────────────────────────────────
 
         public string ExhibitId => exhibitId;
         public string Title => title;
         public virtual string Description => description;
+        public virtual string Topic => topic;
+        public virtual string Grade => grade;
+        public Transform ViewPoint => viewPoint;
 
-        // По умолчанию у экспоната нет параметров и заданий.
-        // Конкретные экспонаты (PendulumExhibit, SpringExhibit) переопределяют.
         public virtual ExhibitParameter[] Parameters => null;
         public virtual IChallenge[] Challenges => null;
 
         public virtual string GetFormulaText() => string.Empty;
         public virtual void ResetSimulation() { }
 
-        public abstract void OnActivate();
+        public virtual void OnActivate()
+        {
+            ProgressManager.Instance?.MarkExhibitStudied(ExhibitId);
 
-        // ── Подсветка ───────────────────────────────────────────────────
+            var studyPanel = FindObjectOfType<ExhibitStudyPanel>(true);
+            if (studyPanel != null)
+            {
+                studyPanel.Open(this);
+            }
+        }
 
         protected virtual void Awake()
         {
@@ -75,20 +77,19 @@ namespace ScienceMuseum.Core
                 highlightRenderer = GetComponent<Renderer>();
             }
 
-            if (highlightRenderer != null)
-            {
-                _originalMaterials = highlightRenderer.sharedMaterials;
-                _highlightedMaterials = new Material[_originalMaterials.Length];
+            if (highlightRenderer == null) return;
 
-                for (int i = 0; i < _originalMaterials.Length; i++)
-                {
-                    _highlightedMaterials[i] = new Material(_originalMaterials[i]);
-                    _highlightedMaterials[i].EnableKeyword("_EMISSION");
-                    _highlightedMaterials[i].SetColor(
-                        "_EmissionColor",
-                        highlightColor * highlightIntensity
-                    );
-                }
+            _originalMaterials = highlightRenderer.sharedMaterials;
+            _highlightedMaterials = new Material[_originalMaterials.Length];
+
+            for (int i = 0; i < _originalMaterials.Length; i++)
+            {
+                _highlightedMaterials[i] = new Material(_originalMaterials[i]);
+                _highlightedMaterials[i].EnableKeyword("_EMISSION");
+                _highlightedMaterials[i].SetColor(
+                    "_EmissionColor",
+                    highlightColor * highlightIntensity
+                );
             }
         }
 
@@ -116,12 +117,11 @@ namespace ScienceMuseum.Core
 
         private void OnDestroy()
         {
-            if (_highlightedMaterials != null)
+            if (_highlightedMaterials == null) return;
+
+            foreach (var mat in _highlightedMaterials)
             {
-                foreach (var mat in _highlightedMaterials)
-                {
-                    if (mat != null) Destroy(mat);
-                }
+                if (mat != null) Destroy(mat);
             }
         }
     }
