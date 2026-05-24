@@ -29,7 +29,6 @@ namespace ScienceMuseum.Player
         [SerializeField] private float maxLookAngle = 85f;
 
         [Header("Ссылки")]
-        [Tooltip("Камера игрока - обычно дочерний объект")]
         [SerializeField] private Camera playerCamera;
 
         private CharacterController _controller;
@@ -39,11 +38,7 @@ namespace ScienceMuseum.Player
         private void Awake()
         {
             _controller = GetComponent<CharacterController>();
-
-            if (playerCamera == null)
-            {
-                playerCamera = GetComponentInChildren<Camera>();
-            }
+            if (playerCamera == null) playerCamera = GetComponentInChildren<Camera>();
         }
 
         private void Start()
@@ -88,25 +83,14 @@ namespace ScienceMuseum.Player
             float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : walkSpeed;
 
             Vector3 moveDirection = transform.right * horizontal + transform.forward * vertical;
-
-            if (moveDirection.magnitude > 1f)
-            {
-                moveDirection.Normalize();
-            }
+            if (moveDirection.magnitude > 1f) moveDirection.Normalize();
 
             Vector3 horizontalMove = moveDirection * currentSpeed;
 
             if (_controller.isGrounded)
             {
-                if (_velocity.y < 0)
-                {
-                    _velocity.y = -2f;
-                }
-
-                if (Input.GetKeyDown(KeyCode.Space))
-                {
-                    _velocity.y = jumpForce;
-                }
+                if (_velocity.y < 0) _velocity.y = -2f;
+                if (Input.GetKeyDown(KeyCode.Space)) _velocity.y = jumpForce;
             }
             else
             {
@@ -114,7 +98,6 @@ namespace ScienceMuseum.Player
             }
 
             Vector3 finalMove = horizontalMove + new Vector3(0, _velocity.y, 0);
-
             _controller.Move(finalMove * Time.deltaTime);
         }
 

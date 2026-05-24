@@ -6,7 +6,7 @@ namespace ScienceMuseum.Player
     public class ExhibitInteractor : MonoBehaviour
     {
         [Header("Параметры взаимодействия")]
-        [Tooltip("Максимальное расстояние до экспоната (в метрах)")]
+        [Tooltip("Максимальное расстояние до экспоната (метры)")]
         [SerializeField] private float interactionDistance = 4f;
 
         [Tooltip("Слой, на котором находятся экспонаты")]
@@ -21,18 +21,21 @@ namespace ScienceMuseum.Player
 
         private IExhibit _currentExhibit;
 
+        public IExhibit CurrentExhibit => _currentExhibit;
+
         private void Awake()
         {
-            if (playerCamera == null)
-            {
-                playerCamera = GetComponentInChildren<Camera>();
-            }
+            if (playerCamera == null) playerCamera = GetComponentInChildren<Camera>();
         }
 
         private void Update()
         {
             UpdateFocusedExhibit();
-            HandleInteraction();
+
+            if (_currentExhibit != null && Input.GetKeyDown(interactionKey))
+            {
+                _currentExhibit.OnActivate();
+            }
         }
 
         private void UpdateFocusedExhibit()
@@ -53,21 +56,6 @@ namespace ScienceMuseum.Player
             }
         }
 
-        private void HandleInteraction()
-        {
-            if (Input.GetKeyDown(interactionKey))
-            {
-                Debug.Log($"[Interactor] E нажата. enabled={enabled}, " +
-                          $"_currentExhibit={(_currentExhibit != null ? _currentExhibit.Title : "NULL")}");
-            }
-
-            if (_currentExhibit == null) return;
-            if (Input.GetKeyDown(interactionKey))
-            {
-                _currentExhibit.OnActivate();
-            }
-        }
-
         private void OnDrawGizmosSelected()
         {
             if (playerCamera == null) return;
@@ -78,7 +66,5 @@ namespace ScienceMuseum.Player
                 playerCamera.transform.forward * interactionDistance
             );
         }
-
-        public IExhibit CurrentExhibit => _currentExhibit;
     }
 }
