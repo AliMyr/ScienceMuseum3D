@@ -2,20 +2,18 @@ using System;
 
 namespace ScienceMuseum.Core
 {
-    
+    /// <summary>
+    /// Декларативное описание параметра модели для автогенерации UI:
+    /// подпись, единица, диапазон, точность, геттер/сеттер значения.
+    /// </summary>
     public class ExhibitParameter
     {
         public string Label { get; }
-
         public string Unit { get; }
-
         public float MinValue { get; }
         public float MaxValue { get; }
-
         public int Decimals { get; }
-
         public Func<float> Getter { get; }
-
         public Action<float> Setter { get; }
 
         public ExhibitParameter(

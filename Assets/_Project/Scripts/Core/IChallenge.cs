@@ -8,6 +8,9 @@ namespace ScienceMuseum.Core
         Failed
     }
 
+    /// <summary>
+    /// Контракт проверочной задачи: описание, текущий статус, проверка ответа.
+    /// </summary>
     public interface IChallenge
     {
         string Id { get; }
@@ -15,13 +18,10 @@ namespace ScienceMuseum.Core
         string Description { get; }
         string Hint { get; }
         ChallengeStatus Status { get; }
-
         int FailedAttempts { get; }
-
         string SolutionText { get; }
 
         bool CheckAnswer();
-
         string GetProgressText();
     }
 }
